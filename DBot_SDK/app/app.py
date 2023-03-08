@@ -45,13 +45,10 @@ def upload_service_endpoints():
     requests.post(f'http://{message_broker_ip}:{message_broker_port}/{endpoint}', json={'service_name': service_name, 'endpoints_info': endpoints_info})
 
 class ServerThread(threading.Thread):
-    def set_server_name(self, server_name):
-        self.server_name = server_name
-        camel_name = ''.join(word.capitalize() for word in server_name.split('_'))
-        super().__init__(name=f'ServerThread{camel_name}')
-
-    def start(self):
+    def init(self):
         from DBot_SDK.conf import RouteInfo
+        self.server_name = RouteInfo.get_service_name()
+        super().__init__(name=f'ServerThread_{self.server_name}')
         self._server_name = f'DBot_{self.server_name}'
         self._app = Flask(__name__)
         success_connect = False
@@ -74,6 +71,9 @@ class ServerThread(threading.Thread):
         ip = RouteInfo.get_service_ip()
         service_port = RouteInfo.get_service_port()
         self._server = make_server(host=ip, port=service_port, app=self._app)
+
+    def start(self):
+        self.init()        
         super().start()
         
     def destory_app(self):
