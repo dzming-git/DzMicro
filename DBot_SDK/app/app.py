@@ -30,8 +30,7 @@ def upload_service_commands():
     message_broker_port = RouteInfo.get_message_broker_port()
     endpoint = RouteInfo.get_message_broker_endpoint('service_commands')
     service_name = RouteInfo.get_service_name()
-    func_dict = FuncDict.get_func_dict()
-    commands = list(func_dict.keys())
+    commands = FuncDict.get_commands()
     requests.post(f'http://{message_broker_ip}:{message_broker_port}/{endpoint}', json={'service_name': service_name, 'commands': commands})
 
 def upload_service_endpoints():

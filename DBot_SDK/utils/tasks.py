@@ -20,12 +20,12 @@ class TaskThread(threading.Thread):
         })
     
     def exe_task(self, task):
-        func_dict = FuncDict.get_func_dict()
         command = task['command']
+        func = FuncDict.get_func(command)
         gid = task['gid']
         qid = task['qid']
         args = task['args']
-        message = func_dict[command](gid=gid, qid=qid, msg_list=args)
+        message = func(gid=gid, qid=qid, msg_list=args)
         send_result_message_to_message_broker(message=message, gid=gid, qid=qid)
 
     def run(self):

@@ -32,7 +32,16 @@ def add(gid=None, qid=None, msg_list=[]):
     return message_send
 
 func_dict = {
-    '#CMD1': lambda gid=None, qid=None, msg_list=[]: func1(gid, qid, msg_list),
-    '#CMD2': lambda gid=None, qid=None, msg_list=[]: func2(gid, qid, msg_list),
-    '#CMD3': lambda gid=None, qid=None, msg_list=[]: func3(gid, qid, msg_list)
+    '#CMD1': {
+        'func': lambda gid=None, qid=None, msg_list=[]: func1(gid, qid, msg_list),
+        'permission_level': 1
+    },
+    '#CMD2': {
+        'func': lambda gid=None, qid=None, msg_list=[]: func2(gid, qid, msg_list),
+        'permission_level': 2
+    },
+    '#CMD3': {
+        'func': lambda gid=None, qid=None, msg_list=[]: func3(gid, qid, msg_list),
+        'permission_level': 3
+    },
     }

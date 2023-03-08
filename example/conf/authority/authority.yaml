@@ -1,28 +1,11 @@
-commands:
-  USER: &USER
-    - '#CMD1'
-  ADMIN: &ADMIN
-    - '#CMD2'
-  MASTER: &MASTER
-    - '#CMD3'
-
-permissions:
-  USER_PERMISSIONS: &USER_PERMISSIONS
-    - *USER
-  ADMIN_PERMISSIONS: &ADMIN_PERMISSIONS
-    - *USER
-    - *ADMIN
-  MASTER_PERMISSIONS: &MASTER_PERMISSIONS
-    - *USER
-    - *ADMIN
-    - *MASTER
-
 authorities:
   -1:
     715558579:
-      permission: *MASTER_PERMISSIONS
+      permission_level: -1
   0:
     0:
-      permission: *USER_PERMISSIONS
+      permission_level: 1
+
   772150487:
-    {}
+    347745673:
+      permission_level: 2

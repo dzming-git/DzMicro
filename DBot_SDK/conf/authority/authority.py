@@ -23,12 +23,6 @@ class Authority:
         with open(config_path, 'r', encoding='utf-8') as f:
             config = yaml.safe_load(f)
             cls._authorities = config.get('authorities', {})
-            for group_id, group_permissions in cls._authorities.items():
-                for qq_id, qq_permissions in group_permissions.items():
-                    permissions = []
-                    for perm_list in qq_permissions['permission']:
-                        permissions.extend(flatten_list(perm_list))
-                    qq_permissions['permission'] = permissions
             if not reload_flag:
                 cls._config_path = config_path
                 cls._watch_dog = WatchDogThread(config_path, cls.reload_config)
@@ -49,22 +43,28 @@ class Authority:
         if group_id not in cls._authorities:
             return None
         # 全局权限
-        global_permission = cls._authorities[-1].get(qq_id, {})['permission']
+        global_permission = cls._authorities[-1].get(qq_id, {})['permission_level']
         if global_permission is not None:
             return global_permission
         # 获取该 QQ 号在该群组中的权限
-        permission = cls._authorities[group_id].get(qq_id, {})['permission']
+        permission = cls._authorities[group_id].get(qq_id, {})['permission_level']
         # 默认权限
         if permission is None:
-            return cls._authorities[0][0]['permission']
+            return cls._authorities[0][0]['permission_level']
         # 已配置权限
         else:
             return permission
 
     @classmethod
     def check_command_permission(cls, command, group_id, qq_id):
-        permission = cls.get_permission(group_id, qq_id)
-        if permission:
-            if command in permission:
-                return True
-        return False
+        permission_level = cls.get_permission(group_id, qq_id)
+        if permission_level < 0:  # 最高权限
+            return True
+        elif permission_level == 0:  # 禁止使用
+            return False
+        else:
+            from DBot_SDK.app import FuncDict
+            permission_level_need = FuncDict.get_permission_level(command)
+            return permission_level >= permission_level_need
+
+
