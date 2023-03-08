@@ -47,9 +47,8 @@ def upload_service_endpoints():
 class ServerThread(threading.Thread):
     def init(self):
         from DBot_SDK.conf import RouteInfo
-        self.server_name = RouteInfo.get_service_name()
-        super().__init__(name=f'ServerThread_{self.server_name}')
-        self._server_name = f'DBot_{self.server_name}'
+        self._server_name = RouteInfo.get_service_name()
+        super().__init__(name=f'ServerThread_{self._server_name}')
         self._app = Flask(__name__)
         success_connect = False
         while True:
