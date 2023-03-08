@@ -9,6 +9,7 @@ class TaskThread(threading.Thread):
         super().__init__(name='TaskThread')
         self._task_queue = Queue()
         self._stop = False
+        super().start()
 
     def add_task(self, command, args, gid=None, qid=None):
         self._task_queue.put({
