@@ -1,0 +1,6 @@
+Flask
+numpy
+PyYAML
+python-consul
+ruamel.yaml
+watchdog
