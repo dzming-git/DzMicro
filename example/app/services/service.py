@@ -1,6 +1,14 @@
-def func1(gid=None, qid=None, msg_list=[]):
+import time
+from DBot_SDK import send_message
+
+def countdown(gid=None, qid=None, msg_list=[]):
+    time_countdown = int(msg_list[0])
+    while time_countdown > 0:
+        send_message(f'倒计时 {time_countdown}', gid, qid)
+        time_countdown -= 1
+        time.sleep(1)
     message_parts = []
-    message_parts.append('This is func1')
+    message_parts.append('倒计时 结束')
     message_send = '\n'.join(message_parts).rstrip('\n')
     return message_send
 
@@ -32,16 +40,16 @@ def add(gid=None, qid=None, msg_list=[]):
     return message_send
 
 func_dict = {
-    '#CMD1': {
-        'func': lambda gid=None, qid=None, msg_list=[]: func1(gid, qid, msg_list),
+    '#倒计时': {
+        'func': countdown,
         'permission': 'USER'
-    },
+        },
     '#CMD2': {
-        'func': lambda gid=None, qid=None, msg_list=[]: func2(gid, qid, msg_list),
+        'func': func2,
         'permission': 'ADMIN'
-    },
+        },
     '#CMD3': {
-        'func': lambda gid=None, qid=None, msg_list=[]: func3(gid, qid, msg_list),
+        'func': func3,
         'permission': 'MASTER'
-    },
+        },
     }
