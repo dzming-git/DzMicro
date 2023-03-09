@@ -13,7 +13,8 @@ def route_registration(app):
         gid = data['gid']
         qid = data['qid']
         permission = Authority.check_command_permission(command=command, group_id=gid, qq_id=qid)
-        task_thread.add_task(command=command, args=args, gid=gid, qid=qid)
+        if permission:
+            task_thread.add_task(command=command, args=args, gid=gid, qid=qid)
         return {'permission': permission}
     
     @app.route('/health')
