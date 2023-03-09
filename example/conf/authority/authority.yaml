@@ -1,11 +1,25 @@
-authorities:
-  -1:
+GLOBAL_PERMISSION_FIRST: False
+
+PERMISSION_LEVEL:
+  ROOT: &ROOT -1
+  NONE: &NONE 0
+  USER: &USER 1
+  ADMIN: &ADMIN 2
+  MASTER: &MASTER 3
+
+AUTHORITIES:
+  GLOBAL:
     715558579:
-      permission_level: -1
-  0:
-    0:
-      permission_level: 1
+      PERMISSION: *ROOT
+
+  PRIVATE:
+    DEFAULT:
+      PERMISSION: *NONE
+    347745673:
+      PERMISSION: *ADMIN
 
   772150487:
+    DEFAULT:
+      PERMISSION: *NONE
     347745673:
-      permission_level: 2
+      PERMISSION: *ADMIN

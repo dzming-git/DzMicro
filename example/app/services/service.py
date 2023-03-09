@@ -34,14 +34,14 @@ def add(gid=None, qid=None, msg_list=[]):
 func_dict = {
     '#CMD1': {
         'func': lambda gid=None, qid=None, msg_list=[]: func1(gid, qid, msg_list),
-        'permission_level': 1
+        'permission': 'USER'
     },
     '#CMD2': {
         'func': lambda gid=None, qid=None, msg_list=[]: func2(gid, qid, msg_list),
-        'permission_level': 2
+        'permission': 'ADMIN'
     },
     '#CMD3': {
         'func': lambda gid=None, qid=None, msg_list=[]: func3(gid, qid, msg_list),
-        'permission_level': 3
+        'permission': 'MASTER'
     },
     }
