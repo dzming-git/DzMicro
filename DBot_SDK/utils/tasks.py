@@ -2,7 +2,6 @@
 import threading
 from queue import Queue
 from DBot_SDK.app import FuncDict
-from DBot_SDK.utils import send_result_message_to_message_broker
 
 class TaskThread(threading.Thread):
     def __init__(self):
@@ -25,8 +24,7 @@ class TaskThread(threading.Thread):
         gid = task['gid']
         qid = task['qid']
         args = task['args']
-        message = func(gid=gid, qid=qid, msg_list=args)
-        send_result_message_to_message_broker(message=message, gid=gid, qid=qid)
+        func(gid=gid, qid=qid, msg_list=args)
 
     def run(self):
         while not self._stop:

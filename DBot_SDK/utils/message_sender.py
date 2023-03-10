@@ -1,7 +1,7 @@
 # message_sender.py
 import requests
 
-def send_result_message_to_message_broker(message, gid=None, qid=None):
+def send_message_to_message_broker(message, gid=None, qid=None):
     from DBot_SDK.conf.route_info import RouteInfo
     ip = RouteInfo.get_message_broker_ip()
     port = RouteInfo.get_message_broker_port()
