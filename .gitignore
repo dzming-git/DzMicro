@@ -3,3 +3,4 @@ __pycache__/
 build/
 DBot_SDK.egg-info/
 dist/
+example/DBot_SDK
