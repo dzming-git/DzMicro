@@ -2,7 +2,7 @@
 service:
   name: DBot_example
   ip: 0.0.0.0
-  port: 5705
+  port: 5702
   tags:
     - DBot
     - DBot_example
