@@ -10,6 +10,7 @@ def load_conf():
 if __name__ == '__main__': 
     load_conf()
     ConfigFromUser.set_func_dict(func_dict)
-    server_thread.start()
-    while True:
-        time.sleep(10)
+    server_thread.set_safe_start(True)
+    if server_thread.start():
+        while True:
+            time.sleep(10)

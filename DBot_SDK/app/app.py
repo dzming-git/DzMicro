@@ -45,8 +45,16 @@ def upload_service_endpoints():
 
 class ServerThread(threading.Thread):
     def init(self):
+        self.safe_start = False
+        self._server = None
         from DBot_SDK.conf import RouteInfo
         self._server_name = RouteInfo.get_service_name()
+        ip = RouteInfo.get_service_ip()
+        service_port = RouteInfo.get_service_port()
+        if self.safe_start:
+            is_available = consul_client.check_port_available(self._server_name, ip, service_port)
+            if not is_available:
+                return False
         super().__init__(name=f'ServerThread_{self._server_name}')
         self._app = Flask(__name__)
         success_connect = False
@@ -66,13 +74,21 @@ class ServerThread(threading.Thread):
         upload_service_commands()
         upload_service_endpoints()
         route_registration(self._app)
-        ip = RouteInfo.get_service_ip()
-        service_port = RouteInfo.get_service_port()
         self._server = make_server(host=ip, port=service_port, app=self._app)
+        return True
+
+    def set_safe_start(self, flag):
+        '''
+        设置安全开始，则会检查配置中的ip与port是否已经被占用
+        但会有较大的启动时间开销
+        '''
+        self.safe_start = flag
 
     def start(self):
-        self.init()        
-        super().start()
+        if self.init():
+            super().start()
+            return True
+        return False
         
     def destory_app(self):
         deregister_service(self._app)
@@ -87,8 +103,8 @@ class ServerThread(threading.Thread):
     
     def restart(self):
         print(f'{self._server_name}正在重启')
-        self.stop()
-        self.init()
-        self.start()
+        if self._server:
+            self.stop()
+        return self.start()
 
 server_thread = ServerThread()

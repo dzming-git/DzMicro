@@ -46,4 +46,30 @@ class ConsulClient:
         services = self.consul.catalog.service(service_name)[1]
         return [(service['ServiceAddress'], service['ServicePort']) for service in services]
 
+    def check_port_available(self, sname: str, sip: str, sport: int):
+        if sip == '0.0.0.0' or sip == '127.0.0.1':
+            sip = socket.gethostbyname(socket.gethostname())
+        # 获取所有已注册的服务
+        services = self.consul.agent.services()
+
+        # 遍历所有已注册的服务，获取它们的 IP 和端口号
+        service_instances = {}
+        for service_id in services:
+            service_name = services[service_id]['Service']
+            _, instances = self.consul.health.service(service_name, passing=True)
+            for instance in instances:
+                ip = instance['Service']['Address']
+                port = instance['Service']['Port']
+                if service_name not in service_instances:
+                    service_instances[service_name] = []
+                service_instances[service_name].append((ip, port))
+        
+        # 逐个检查服务列表和对应的实例 IP 和端口号
+        for name, instances in service_instances.items():
+            for ip, port in instances:
+                if sip == ip and sport == port and sname != name:
+                    print(f'{ip}:{port}已被{name}占用')
+                    return False
+        return True
+
 consul_client = ConsulClient()
