@@ -34,7 +34,7 @@ class RouteInfo:
         config_new = copy.deepcopy(cls._config)
         added_dict, deleted_dict, modified_dict = compare_dicts(config_old, config_new)
         if added_dict or deleted_dict or modified_dict:
-            from app.app import server_thread
+            from DBot_SDK.app import server_thread
             server_thread.restart()
 
     # 机器人API网关配置方法
