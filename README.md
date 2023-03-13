@@ -1,9 +1,10 @@
 # DBot_SDK
 
 DBot微服务的软件开发工具包（SDK）。
-该SDK可用于快速开发除 [DBot_platform]((https://github.com/dzming-git/DBot_platform)) 以外的微程序。
 
 ## 使用该SDK开发的微程序
+
+- [DBot_platform]((https://github.com/dzming-git/DBot_platform))
 
 - [DBot_monitor](https://github.com/dzming-git/DBot_monitor)
 

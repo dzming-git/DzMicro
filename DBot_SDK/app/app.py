@@ -5,9 +5,10 @@ import time
 import json
 import threading
 from werkzeug.serving import make_server
-from DBot_SDK.api import route_registration
-from DBot_SDK.utils.service_discovery import register_consul, discover_message_broker, deregister_service
+from DBot_SDK.api import route_registration, message_broker_route_registration
+from DBot_SDK.utils.service_discovery import register_consul, discover_message_broker, deregister_service, message_broker_endpoints_upload
 from DBot_SDK.utils.service_discovery import consul_client
+from DBot_SDK.conf import ConfigFromUser
 
 
 def download_message_broker_endpoints():
@@ -48,32 +49,41 @@ class ServerThread(threading.Thread):
         self.safe_start = False
         self._server = None
         from DBot_SDK.conf import RouteInfo
-        self._server_name = RouteInfo.get_service_name()
-        ip = RouteInfo.get_service_ip()
-        service_port = RouteInfo.get_service_port()
+        if ConfigFromUser.is_message_broker():
+            self.name = RouteInfo.get_message_broker_name()
+            ip = RouteInfo.get_message_broker_ip()
+            port = RouteInfo.get_message_broker_port()
+        else:
+            self.name = RouteInfo.get_service_name()
+            ip = RouteInfo.get_service_ip()
+            port = RouteInfo.get_service_port()
+            
         if self.safe_start:
-            is_available = consul_client.check_port_available(self._server_name, ip, service_port)
+            is_available = consul_client.check_port_available(self.name, ip, port)
             if not is_available:
                 return False
-        super().__init__(name=f'ServerThread_{self._server_name}')
+        super().__init__(name=f'ServerThread_{self.name}')
         self._app = Flask(__name__)
-        success_connect = False
-        while True:
-            success_connect = \
-                discover_message_broker(RouteInfo.get_message_broker_name()) and \
-                download_message_broker_endpoints()
-            if success_connect:
-                break
-            print('连接DBot平台程序失败，正在重连')
-            time.sleep(1)
-        config = {
-            **register_consul()
-        }
-        self._app.config.update(config)
-        upload_service_commands()
-        upload_service_endpoints()
-        route_registration(self._app)
-        self._server = make_server(host=ip, port=service_port, app=self._app)
+
+        if ConfigFromUser.is_message_broker():
+            message_broker_route_registration(self._app)
+            message_broker_endpoints_upload()
+        else:
+            success_connect = False
+            while True:
+                success_connect = \
+                    discover_message_broker(RouteInfo.get_message_broker_name()) and \
+                    download_message_broker_endpoints()
+                if success_connect:
+                    break
+                print('连接DBot平台程序失败，正在重连')
+                time.sleep(1)
+            upload_service_commands()
+            upload_service_endpoints()
+            route_registration(self._app)
+
+        register_consul(self._app, self.name, port)
+        self._server = make_server(host=ip, port=port, app=self._app)
         return True
 
     def set_safe_start(self, flag):
@@ -93,15 +103,15 @@ class ServerThread(threading.Thread):
         deregister_service(self._app)
 
     def run(self):
-        print(f'{self._server_name}已运行')
+        print(f'{self.name}已运行')
         self._server.serve_forever()
-        print(f'{self._server_name}已结束')
+        print(f'{self.name}已结束')
     
     def stop(self):
         self._server.shutdown()
     
     def restart(self):
-        print(f'{self._server_name}正在重启')
+        print(f'{self.name}正在重启')
         if self._server:
             self.stop()
         return self.start()

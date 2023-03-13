@@ -2,8 +2,10 @@
 import yaml
 import copy
 from DBot_SDK.utils import WatchDogThread, compare_dicts
+from DBot_SDK.conf import ConfigFromUser
 
 class RouteInfo:
+    _is_message_broker = False
     _config_path = ''
     _config = {}
     _watch_dog = None
@@ -14,9 +16,13 @@ class RouteInfo:
 
     @classmethod
     def load_config(cls, config_path, reload_flag=False):
+        cls._is_message_broker = ConfigFromUser.is_message_broker()
         with open(config_path, 'r', encoding='utf-8') as f:
             cls._config = yaml.safe_load(f)
-            cls._service_conf = cls._config.get('service', {})
+            if not cls._is_message_broker:
+                cls._service_conf = cls._config.get('service', {})
+            else:
+                _message_broker_find = True
             cls._message_broker_conf_from_file = cls._config.get('message_broker', {})
             if not reload_flag:
                 cls._config_path = config_path
@@ -75,12 +81,16 @@ class RouteInfo:
     
     @classmethod
     def get_message_broker_ip(cls):
+        if cls._is_message_broker:
+            return cls._message_broker_conf_from_file.get('ip')
         if cls._message_broker_find:
             return cls._message_broker_conf_from_consul.get('ip')
         return None
     
     @classmethod
     def get_message_broker_port(cls):
+        if cls._is_message_broker:
+            return cls._message_broker_conf_from_file.get('port')
         if cls._message_broker_find:
             return cls._message_broker_conf_from_consul.get('port')
         return None
@@ -90,7 +100,15 @@ class RouteInfo:
         cls._message_broker_conf_from_consul['endpoints'][usage] = endpoint
     
     @classmethod
+    def get_message_broker_endpoints_info(cls):
+        if cls._is_message_broker:
+            return cls._message_broker_conf_from_file.get('endpoints')
+        return cls._message_broker_conf_from_consul.get('endpoints')
+
+    @classmethod
     def get_message_broker_endpoint(cls, usage):
+        if cls._is_message_broker:
+            return cls._message_broker_conf_from_file.get('endpoints')[usage]
         return cls._message_broker_conf_from_consul.get('endpoints')[usage]
     
     @classmethod
