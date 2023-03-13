@@ -4,7 +4,7 @@ DBot微服务的软件开发工具包（SDK）。
 
 ## 使用该SDK开发的微程序
 
-- [DBot_platform]((https://github.com/dzming-git/DBot_platform))
+- [DBot_platform](https://github.com/dzming-git/DBot_platform)
 
 - [DBot_monitor](https://github.com/dzming-git/DBot_monitor)
 
