@@ -6,7 +6,7 @@ import json
 import threading
 from werkzeug.serving import make_server
 from DBot_SDK.api import route_registration
-from DBot_SDK.utils.service_discovery import register_consul, discover_api_gateway, discover_message_broker, deregister_service
+from DBot_SDK.utils.service_discovery import register_consul, discover_message_broker, deregister_service
 from DBot_SDK.utils.service_discovery import consul_client
 
 
@@ -60,7 +60,6 @@ class ServerThread(threading.Thread):
         success_connect = False
         while True:
             success_connect = \
-                discover_api_gateway(RouteInfo.get_api_gateway_name()) and \
                 discover_message_broker(RouteInfo.get_message_broker_name()) and \
                 download_message_broker_endpoints()
             if success_connect:

@@ -19,19 +19,6 @@ def deregister_service(app):
     '''
     id = app.config['id']
     consul_client.deregister_service(id)
-
-def discover_api_gateway(service_name):
-    """
-    发现机器人API网关
-    """
-    services = consul_client.discover_services(service_name)
-    if services:
-        from DBot_SDK.conf import RouteInfo
-        api_gateway = services[0]
-        RouteInfo.update_api_gateway(ip=api_gateway[0], port=api_gateway[1])
-        return True
-    print('API网关未开启')
-    return False
         
 def discover_message_broker(service_name):
     """

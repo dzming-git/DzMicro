@@ -8,10 +8,7 @@ class RouteInfo:
     _config = {}
     _watch_dog = None
     _service_conf = {}
-    _api_gateway_find = False
     _message_broker_find = False
-    _api_gateway_conf_from_file = {}
-    _api_gateway_conf_from_consul = {}
     _message_broker_conf_from_file = {}
     _message_broker_conf_from_consul = {'endpoints': {}}
 
@@ -20,7 +17,6 @@ class RouteInfo:
         with open(config_path, 'r', encoding='utf-8') as f:
             cls._config = yaml.safe_load(f)
             cls._service_conf = cls._config.get('service', {})
-            cls._api_gateway_conf_from_file = cls._config.get('api_gateway', {})
             cls._message_broker_conf_from_file = cls._config.get('message_broker', {})
             if not reload_flag:
                 cls._config_path = config_path
@@ -36,33 +32,6 @@ class RouteInfo:
         if added_dict or deleted_dict or modified_dict:
             from DBot_SDK.app import server_thread
             server_thread.restart()
-
-    # 机器人API网关配置方法
-    @classmethod
-    def get_api_gateway_name(cls):
-        return cls._api_gateway_conf_from_file.get('name')
-    
-    @classmethod
-    def is_api_gateway_find(cls):
-        return cls._api_gateway_find
-    
-    @classmethod
-    def update_api_gateway(cls, ip, port):
-        cls._api_gateway_find = True
-        cls._api_gateway_conf_from_consul['ip'] = ip
-        cls._api_gateway_conf_from_consul['port'] = port
-    
-    @classmethod
-    def get_api_gateway_ip(cls):
-        if cls._api_gateway_find:
-            return cls._api_gateway_conf_from_consul.get('ip')
-        return None
-    
-    @classmethod
-    def get_api_gateway_port(cls):
-        if cls._api_gateway_find:
-            return cls._api_gateway_conf_from_consul.get('port')
-        return None
 
     # 服务程序配置方法
     @classmethod
