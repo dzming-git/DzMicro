@@ -2,11 +2,9 @@
 import re
 import requests
 import threading
-from DBot_SDK.app.message_handler.bot_commands import BotCommands
-from DBot_SDK.app.message_handler.keyword_error_handler import keyword_error_handler
-from DBot_SDK.app.message_handler.permission_denied_handler import permission_denied
+from DBot_SDK.app import BotCommands, keyword_error_handler, command_error_handler, permission_denied
 from DBot_SDK.utils.message_sender import send_message_to_cqhttp
-from DBot_SDK.app.message_handler.service_registry import serviceRegistry
+from DBot_SDK.app.message_handler.service_registry import ServiceRegistry
 from queue import Queue
 import time
 
@@ -36,7 +34,6 @@ class MessageHandlerThread(threading.Thread):
                 send_message_to_cqhttp('连接错误', gid, qid)    
     
     def message_handler(self, message: str, gid=None, qid=None):
-        # TODO:需要同步修改
         def message_split(message):
             pattern = r'(#\w+)\s*(.*)'
             match = re.match(pattern, message.strip())
@@ -57,8 +54,11 @@ class MessageHandlerThread(threading.Thread):
             if keyword not in keywords:
                 keyword_error_handler(gid, qid)
             else:
+                commands = BotCommands.get_commands(keyword)
+                if command not in commands:
+                    command_error_handler(gid, qid)
                 service_name = BotCommands.get_service_name(keyword)
-                service_info = serviceRegistry.get_service(service_name)
+                service_info = ServiceRegistry.get_service(service_name)
                 if service_info is not None:
                     service_ip = service_info['ip']
                     service_port = service_info['port']

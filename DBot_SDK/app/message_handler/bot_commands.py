@@ -41,6 +41,11 @@ class BotCommands:
             return list(cls._bot_commands.keys())
     
     @classmethod
+    def get_commands(cls, keyword):
+        with cls._lock:
+            return cls._bot_commands.get(keyword, {}).get('command', [])
+    
+    @classmethod
     def get_service_name(cls, keyword):
         with cls._lock:
             return cls._bot_commands.get(keyword, {}).get('service_name', '')
