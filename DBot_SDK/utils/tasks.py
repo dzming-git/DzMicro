@@ -24,7 +24,7 @@ class TaskThread(threading.Thread):
         gid = task['gid']
         qid = task['qid']
         args = task['args']
-        func(gid=gid, qid=qid, msg_list=args)
+        func(gid=gid, qid=qid, args=args)
 
     def run(self):
         while not self._stop:
