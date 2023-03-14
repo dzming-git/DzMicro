@@ -76,8 +76,8 @@ def message_broker_route_registration(app):
             usages = list(endpoints_info.keys())
             for usage in usages:
                 endpoint = endpoints_info[usage]
-                from DBot_SDK.app.message_handler.service_registry import serviceRegistry
-                serviceRegistry.add_service_endpoint(service_name, usage, endpoint)
+                from DBot_SDK.app.message_handler.service_registry import ServiceRegistry
+                ServiceRegistry.add_service_endpoint(service_name, usage, endpoint)
             return jsonify({'message': 'Bot commands registered successfully'}), 200
         else:
             return jsonify({'message': 'Invalid request'}), 400
