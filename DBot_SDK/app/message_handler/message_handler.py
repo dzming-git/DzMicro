@@ -44,7 +44,7 @@ class MessageHandlerThread(threading.Thread):
                     command = param_list[0]
                     param_list = param_list[1:]
                 else:
-                    command = 'default'
+                    command = '帮助'
                 return keyword, command, param_list
             else:
                 return None, None, None
