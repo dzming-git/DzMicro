@@ -11,15 +11,8 @@ def send_message_to_message_broker(message, gid=None, qid=None):
     return response.json()
 
 # message broker专用
-class Msg_struct:
-    def __init__(self, gid=None, qid=None, msg=''):
-        self.gid = gid
-        self.qid = qid
-        self.msg = msg
-
-# message broker专用
-def send_message_to_cqhttp(msg_struct: Msg_struct):
-    if msg_struct.gid is None:
-        requests.get(f'http://127.0.0.1:5700/send_private_msg?user_id={msg_struct.qid}&message={msg_struct.msg}')
+def send_message_to_cqhttp(message, gid=None, qid=None):
+    if gid is None:
+        requests.get(f'http://127.0.0.1:5700/send_private_msg?user_id={qid}&message={message}')
     else:   
-        requests.get(f'http://127.0.0.1:5700/send_group_msg?group_id={msg_struct.gid}&message={msg_struct.msg}')
+        requests.get(f'http://127.0.0.1:5700/send_group_msg?group_id={gid}&message={message}')

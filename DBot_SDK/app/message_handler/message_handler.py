@@ -5,7 +5,7 @@ import threading
 from DBot_SDK.app.message_handler.bot_commands import BotCommands
 from DBot_SDK.app.message_handler.command_error_handler import command_error_handler
 from DBot_SDK.app.message_handler.permission_denied_handler import permission_denied
-from DBot_SDK.utils.message_sender import Msg_struct, send_message_to_cqhttp
+from DBot_SDK.utils.message_sender import send_message_to_cqhttp
 from DBot_SDK.app.message_handler.service_registry import serviceRegistry
 from queue import Queue
 import time
@@ -33,8 +33,7 @@ class MessageHandlerThread(threading.Thread):
                 print(f"Message forwarded to {url}")
                 time.sleep(0.1)
             except:
-                msg_struct = Msg_struct(gid=gid, qid=qid, msg='连接错误')
-                send_message_to_cqhttp(msg_struct)    
+                send_message_to_cqhttp('连接错误', gid, qid)    
     
     def message_handler(self, message: str, gid=None, qid=None):
         def check_command(message, command_list):
