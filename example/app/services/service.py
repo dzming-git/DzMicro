@@ -1,6 +1,9 @@
 import time
 from DBot_SDK import send_message
 
+def default_func(gid=None, qid=None, msg_list=[]):
+    send_message('默认回复，待开发', gid, qid)
+
 def countdown(gid=None, qid=None, msg_list=[]):
     time_countdown = int(msg_list[0])
     while time_countdown > 0:
@@ -17,6 +20,10 @@ def func3(gid=None, qid=None, msg_list=[]):
     send_message('This is func3', gid, qid)
 
 func_dict = {
+    'default':{
+        'func': default_func,
+        'permission': 'USER'
+        },
     '倒计时': {
         'func': countdown,
         'permission': 'USER'
