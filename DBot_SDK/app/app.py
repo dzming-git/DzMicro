@@ -50,19 +50,19 @@ class ServerThread(threading.Thread):
         self._server = None
         from DBot_SDK.conf import RouteInfo
         if ConfigFromUser.is_message_broker():
-            self.name = RouteInfo.get_message_broker_name()
+            self.server_name = RouteInfo.get_message_broker_name()
             ip = RouteInfo.get_message_broker_ip()
             port = RouteInfo.get_message_broker_port()
         else:
-            self.name = RouteInfo.get_service_name()
+            self.server_name = RouteInfo.get_service_name()
             ip = RouteInfo.get_service_ip()
             port = RouteInfo.get_service_port()
             
         if self.safe_start:
-            is_available = consul_client.check_port_available(self.name, ip, port)
+            is_available = consul_client.check_port_available(self.server_name, ip, port)
             if not is_available:
                 return False
-        super().__init__(name=f'ServerThread_{self.name}')
+        super().__init__(name=f'ServerThread_{self.server_name}')
         self._app = Flask(__name__)
 
         if ConfigFromUser.is_message_broker():
@@ -82,7 +82,7 @@ class ServerThread(threading.Thread):
             upload_service_endpoints()
             route_registration(self._app)
 
-        register_consul(self._app, self.name, port)
+        register_consul(self._app, self.server_name, port)
         self._server = make_server(host=ip, port=port, app=self._app)
         return True
 
@@ -103,15 +103,15 @@ class ServerThread(threading.Thread):
         deregister_service(self._app)
 
     def run(self):
-        print(f'{self.name}已运行')
+        print(f'{self.server_name}已运行')
         self._server.serve_forever()
-        print(f'{self.name}已结束')
+        print(f'{self.server_name}已结束')
     
     def stop(self):
         self._server.shutdown()
     
     def restart(self):
-        print(f'{self.name}正在重启')
+        print(f'{self.server_name}正在重启')
         if self._server:
             self.stop()
         return self.start()
