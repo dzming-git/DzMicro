@@ -35,13 +35,16 @@ def message_broker_route_registration(app):
         '''
         接收服务程序的服务名和对应处理指令之间的映射关系
         '''
+        from DBot_SDK.app.message_handler.bot_commands import BotCommands
+
         data = request.get_json()
         service_name = data.get('service_name')
+        keyword = data.get('keyword')
+        BotCommands.add_keyword(keyword, service_name)
         commands = data.get('commands')
         if service_name and commands:
             for command in commands:
-                from DBot_SDK.app.message_handler.bot_commands import BotCommands
-                BotCommands.add_commands(command, service_name)            
+                BotCommands.add_commands(keyword, command)            
             return jsonify({'message': 'Bot commands registered successfully'}), 200
         else:
             return jsonify({'message': 'Invalid request'}), 400

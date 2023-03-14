@@ -31,9 +31,14 @@ def upload_service_commands():
     message_broker_port = RouteInfo.get_message_broker_port()
     endpoint = RouteInfo.get_message_broker_endpoint('service_commands')
     service_name = RouteInfo.get_service_name()
+    keyword = FuncDict.get_keyword()
     commands = FuncDict.get_commands()
-    requests.post(f'http://{message_broker_ip}:{message_broker_port}/{endpoint}', json={'service_name': service_name, 'commands': commands})
-
+    requests.post(f'http://{message_broker_ip}:{message_broker_port}/{endpoint}', 
+                  json={
+        'service_name': service_name, 
+        'keyword': keyword,
+        'commands': commands})
+    
 def upload_service_endpoints():
     # 注册支持的endpoint到消息代理程序
     from DBot_SDK.conf import RouteInfo

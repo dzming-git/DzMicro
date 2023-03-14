@@ -3,7 +3,7 @@ import re
 import requests
 import threading
 from DBot_SDK.app.message_handler.bot_commands import BotCommands
-from DBot_SDK.app.message_handler.command_error_handler import command_error_handler
+from DBot_SDK.app.message_handler.keyword_error_handler import keyword_error_handler
 from DBot_SDK.app.message_handler.permission_denied_handler import permission_denied
 from DBot_SDK.utils.message_sender import send_message_to_cqhttp
 from DBot_SDK.app.message_handler.service_registry import serviceRegistry
@@ -36,25 +36,28 @@ class MessageHandlerThread(threading.Thread):
                 send_message_to_cqhttp('连接错误', gid, qid)    
     
     def message_handler(self, message: str, gid=None, qid=None):
-        def check_command(message, command_list):
+        # TODO:需要同步修改
+        def message_split(message):
             pattern = r'(#\w+)\s*(.*)'
             match = re.match(pattern, message.strip())
             if match:
-                command = match.group(1)
-                if command in command_list:
-                    param_list = match.group(2).strip().split()
-                    return command, param_list
+                keyword = match.group(1)
+                param_list = match.group(2).strip().split()
+                if param_list:
+                    command = param_list[0]
+                    param_list = param_list[1:]
                 else:
-                    return 'error', 'invalid command'
+                    command = 'default'
+                return keyword, command, param_list
             else:
-                return None, None
-        commands = list(BotCommands.get_commands())
-        command, param_list = check_command(message, commands)
-        if command:
-            if 'error' == command:
-                command_error_handler(gid, qid)
+                return None, None, None
+        keywords = list(BotCommands.get_keywords())
+        keyword, command, param_list = message_split(message)
+        if keyword:
+            if keyword not in keywords:
+                keyword_error_handler(gid, qid)
             else:
-                service_name = BotCommands.get_service_name(command)
+                service_name = BotCommands.get_service_name(keyword)
                 service_info = serviceRegistry.get_service(service_name)
                 if service_info is not None:
                     service_ip = service_info['ip']

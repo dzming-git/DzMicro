@@ -17,15 +17,15 @@ def func3(gid=None, qid=None, msg_list=[]):
     send_message('This is func3', gid, qid)
 
 func_dict = {
-    '#倒计时': {
+    '倒计时': {
         'func': countdown,
         'permission': 'USER'
         },
-    '#CMD2': {
+    'CMD2': {
         'func': func2,
         'permission': 'ADMIN'
         },
-    '#CMD3': {
+    'CMD3': {
         'func': func3,
         'permission': 'MASTER'
         },

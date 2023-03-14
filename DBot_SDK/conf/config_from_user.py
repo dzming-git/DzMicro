@@ -27,3 +27,8 @@ class ConfigFromUser:
     def set_func_dict(cls, func_dict):
         from DBot_SDK.app import FuncDict
         FuncDict.set_func_dict(func_dict)
+    
+    @classmethod
+    def set_keyword(cls, keyword):
+        from DBot_SDK.app import FuncDict
+        FuncDict.set_keyword(keyword)
