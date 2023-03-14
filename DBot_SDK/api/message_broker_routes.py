@@ -82,6 +82,27 @@ def message_broker_route_registration(app):
         else:
             return jsonify({'message': 'Invalid request'}), 400
     
+    service_endpoints_endpoint = RouteInfo.get_message_broker_endpoint('service_listen')
+    @app.route(f'/{service_endpoints_endpoint}', methods=['POST'])
+    def register_service_listen():
+        '''
+        接收服务程序的监听申请
+        '''
+        data = request.get_json()
+        service_name = data.get('service_name')
+        keyword = data.get('keyword')
+        command = data.get('command')
+        gid = data.get('gid')
+        qid = data.get('qid')
+        should_listen = data.get('should_listen', False)
+
+        if service_name and keyword and command:
+            from DBot_SDK.app import ServiceRegistry
+            ServiceRegistry.update_listens(service_name, command, gid, qid, should_listen)
+            return jsonify({'message': 'Bot listen registered successfully'}), 200
+        else:
+            return jsonify({'message': 'Invalid request'}), 400
+
     @app.route('/health')
     def health_check():
         return 'OK'

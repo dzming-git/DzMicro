@@ -3,7 +3,19 @@ from DBot_SDK.utils.service_discovery.consul_client import consul_client
 from datetime import datetime
 
 class ServiceRegistry:
+    '''
+    _listens=[
+        {
+            'service_name':
+            'command':
+            'gid':
+            'qid':
+        }
+    ]
+
+    '''
     _services = {}
+    _listens = []
 
     @classmethod
     def add_service(cls, service_name, ip, port):
@@ -40,11 +52,32 @@ class ServiceRegistry:
     
     @classmethod
     def add_service_endpoint(cls, service_name, usage, endpoint):
-        if service_name in list(cls._services.keys()):
+        if service_name in cls._services:
             cls._services[service_name]['endpoints'][usage] = endpoint
         else:
             if cls.add_service_from_consul(service_name):
                 cls._services[service_name]['endpoints'][usage] = endpoint
+    
+    @classmethod
+    def update_listens(cls, service_name, command, gid, qid, should_listen):
+        #TODO 检查是否已经在_listens中
+        #TODO 删除监听还没写
+        if should_listen:
+            cls._listens.append({
+                'service_name': service_name,
+                'command': command,
+                'gid': gid,
+                'qid': qid
+            })
+        else:
+            pass
+    
+    @classmethod
+    def get_listens(cls):
+        '''
+        获取目前监听状态的服务和申请监听的指令
+        '''
+        return cls._listens
 
     @classmethod
     def get_service_endpoint(cls, service_name, usage):

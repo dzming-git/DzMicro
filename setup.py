@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='DBot_SDK',
-    version='1.1',
+    version='1.2',
     packages=find_packages(),
     author='dzming',
     author_email='dzming_work@163.com',
