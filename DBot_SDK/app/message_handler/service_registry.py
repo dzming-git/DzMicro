@@ -60,17 +60,25 @@ class ServiceRegistry:
     
     @classmethod
     def update_listens(cls, service_name, command, gid, qid, should_listen):
-        #TODO 检查是否已经在_listens中
         #TODO 删除监听还没写
         if should_listen:
-            cls._listens.append({
-                'service_name': service_name,
-                'command': command,
-                'gid': gid,
-                'qid': qid
-            })
-        else:
-            pass
+            should_add = True
+            for listen in cls._listens:
+                if \
+                    service_name == listen.get('service_name') and \
+                    command == listen.get('command') and \
+                    gid == listen.get('gid'):
+                    if (gid is None and qid == listen.get('qid')) or gid:
+                        should_add = False
+            if should_add:
+                cls._listens.append({
+                    'service_name': service_name,
+                    'command': command,
+                    'gid': gid,
+                    'qid': qid
+                })
+            else:
+                pass
     
     @classmethod
     def get_listens(cls):
