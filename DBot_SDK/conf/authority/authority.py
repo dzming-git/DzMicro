@@ -53,18 +53,30 @@ class Authority:
 
     @classmethod
     def check_command_permission(cls, command, group_id, qq_id):
+        '''
+        特殊权限：
+        -3 只准内部调用，不对用户开放
+        -2 最高权限，可以调用一切外部调用的指令
+        -1 禁止使用一切指令
+        '''
         permission_level = cls.get_permission_level(group_id, qq_id)
-        if permission_level < 0:  # 最高权限
+        from DBot_SDK.app import FuncDict
+        permission_need = FuncDict.get_permission(command)
+        permission_level_need = cls._permission_level.get(permission_need, None)
+        # func_dict中权限配置错误
+        if permission_level_need is None:
+            print('func_dict中权限配置错误')
+            return None
+        # 只准内部调用，不对用户开放
+        if permission_level_need == -3:
+            return None
+        # 最高权限
+        if permission_level == -2:
             return True
-        elif permission_level == 0:  # 禁止使用
+        # 禁止权限
+        if permission_level == -1:
             return False
-        else:
-            from DBot_SDK.app import FuncDict
-            permission_need = FuncDict.get_permission(command)
-            permission_level_need = cls._permission_level.get(permission_need, None)
-            if permission_level_need is None:
-                print('func_dict中权限配置错误')
-                return False
-            return permission_level >= permission_level_need
+        # 一般权限
+        return permission_level >= permission_level_need
 
 
