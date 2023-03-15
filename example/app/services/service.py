@@ -19,17 +19,16 @@ def countdown(gid=None, qid=None, args=[]):
         send_message('倒计时 结束', gid, qid)
 
 def auto_echo(gid=None, qid=None, args=[]):
-    #TODO 开启监听的服务函数和接收消息的执行服务函数应该设置为不同的函数
-    #TODO 接收监听指令的服务函数应该加一个不可被主动调用的标记
-    if args[0] == '开始':
+    if not args or args[0] == '开始':
         from DBot_SDK.conf import RouteInfo
         import requests
         message_broker_ip = RouteInfo.get_message_broker_ip()
         message_broker_port = RouteInfo.get_message_broker_port()
         endpoint = RouteInfo.get_message_broker_endpoint('service_listen')
         service_name = RouteInfo.get_service_name()
+        #TODO 考虑要不要将keyword设置为全局变量，这里似乎可以为其他服务程序开启监听
         keyword = '#测试'
-        command = '自动复读'
+        command = '复读'
         requests.post(f'http://{message_broker_ip}:{message_broker_port}/{endpoint}', 
                     json={'service_name': service_name, 
                             'keyword': keyword,
@@ -37,11 +36,11 @@ def auto_echo(gid=None, qid=None, args=[]):
                             'gid': gid,
                             'qid': qid,
                             'should_listen': True})
+    send_message('自动复读开始', gid, qid)
 
-    send_message(args[0], gid, qid)
-
-def func3(gid=None, qid=None, args=[]):
-    send_message('This is func3', gid, qid)
+def echo(gid=None, qid=None, args=[]):
+    if args:
+        send_message(args[0], gid, qid)
 
 func_dict = {
     '帮助':{
@@ -56,8 +55,8 @@ func_dict = {
         'func': auto_echo,
         'permission': 'ADMIN'
         },
-    'CMD3': {
-        'func': func3,
-        'permission': 'MASTER'
+    '复读': {
+        'func': echo,
+        'permission': 'INTERNAL'
         },
     }
