@@ -8,11 +8,14 @@ def route_registration(app):
     @app.route(f'/{receive_command_endpoint}', methods=['POST'])
     def receive_command():
         data = request.get_json()
-        command = data['command']
-        args = data['args']
-        gid = data['gid']
-        qid = data['qid']
-        permission = Authority.check_command_permission(command=command, group_id=gid, qq_id=qid)
+        command = data.get('command')
+        args = data.get('args')
+        gid = data.get('gid')
+        qid = data.get('qid')
+        is_user_call = data.get('is_user_call', True)
+        permission = True
+        if is_user_call:
+            permission = Authority.check_command_permission(command=command, group_id=gid, qq_id=qid)  
         if permission:
             task_thread.add_task(command=command, args=args, gid=gid, qid=qid)
         return {'permission': permission}
