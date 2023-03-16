@@ -4,6 +4,8 @@ from DBot_SDK import send_message, Authority
 def help(gid=None, qid=None, args=[]):
     permission_level = Authority.get_permission_level(gid, qid)
     permission = Authority.get_permission_by_level(permission_level)
+    if gid:
+        message = f'[CQ:at,qq={qid}]\n'
     message = f'关键词 {KEYWORD}\n当前权限 {permission}\n可调用指令如下\n'
     for command in list(func_dict.keys()):
         if Authority.check_command_permission(command, gid, qid):

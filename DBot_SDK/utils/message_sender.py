@@ -1,6 +1,6 @@
 # message_sender.py
 import requests
-import urllib
+from DBot_SDK.utils.urlencoding_message import urlencoding_message
 
 def send_message_to_message_broker(message, gid=None, qid=None):
     from DBot_SDK.conf.route_info import RouteInfo
@@ -13,7 +13,7 @@ def send_message_to_message_broker(message, gid=None, qid=None):
 
 # message broker专用
 def send_message_to_cqhttp(message: str, gid=None, qid=None):
-    urlencoded_message = urllib.parse.quote(message)
+    urlencoded_message = urlencoding_message(message)
     if gid is None:
         requests.get(f'http://127.0.0.1:5700/send_private_msg?user_id={qid}&message={urlencoded_message}')
     else:   
