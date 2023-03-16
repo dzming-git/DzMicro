@@ -27,7 +27,7 @@ def auto_echo(gid=None, qid=None, args=[]):
         endpoint = RouteInfo.get_message_broker_endpoint('service_listen')
         service_name = RouteInfo.get_service_name()
         #TODO 考虑要不要将keyword设置为全局变量，这里似乎可以为其他服务程序开启监听
-        keyword = '#测试'
+        keyword = KEYWORD
         command = '复读'
         requests.post(f'http://{message_broker_ip}:{message_broker_port}/{endpoint}', 
                     json={'service_name': service_name, 
@@ -42,6 +42,7 @@ def echo(gid=None, qid=None, args=[]):
     if args:
         send_message(args[0], gid, qid)
 
+KEYWORD = '#测试'
 func_dict = {
     '帮助':{
         'func': help,
