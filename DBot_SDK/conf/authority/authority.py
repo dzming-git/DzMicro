@@ -52,6 +52,13 @@ class Authority:
         return permission_level
 
     @classmethod
+    def get_permission_by_level(cls, level):
+        for permissionm, l in cls._permission_level.items():
+            if l == level:
+                return permissionm
+        return None
+
+    @classmethod
     def check_command_permission(cls, command, group_id, qq_id):
         '''
         特殊权限：
