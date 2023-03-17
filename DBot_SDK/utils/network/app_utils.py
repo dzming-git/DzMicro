@@ -11,6 +11,12 @@ def upload_service_commands():
     service_name = RouteInfo.get_service_name()
     keyword = FuncDict.get_keyword()
     commands = FuncDict.get_commands()
+    k = f'{service_name}/config'
+    v = json.dumps({
+        'keyword': keyword,
+        'commands': commands
+    })
+    consul_client.update_key_value({k: v})
     requests.post(f'http://{message_broker_ip}:{message_broker_port}/api/v1/service_commands', 
                   json={
         'service_name': service_name, 
