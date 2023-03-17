@@ -6,8 +6,7 @@ def send_message_to_message_broker(message, gid=None, qid=None):
     from DBot_SDK.conf.route_info import RouteInfo
     ip = RouteInfo.get_message_broker_ip()
     port = RouteInfo.get_message_broker_port()
-    endport = RouteInfo.get_message_broker_endpoint('service_message')
-    url = f'http://{ip}:{port}/{endport}'
+    url = f'http://{ip}:{port}//api/v1/service_message'
     response = requests.post(url, json={'message': message, 'gid': gid, 'qid': qid})
     return response.json()
 

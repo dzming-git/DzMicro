@@ -4,6 +4,7 @@ import requests
 import threading
 from DBot_SDK.app import BotCommands, keyword_error_handler, command_error_handler, permission_denied
 from DBot_SDK.utils import send_message_to_cqhttp
+from DBot_SDK.utils.network.app_utils import publish_task
 from DBot_SDK.app import ServiceRegistry
 from queue import Queue
 import time
@@ -18,18 +19,16 @@ class MessageHandlerThread(threading.Thread):
     def run(self):
         while not self.stop:
             message = self.message_queue.get(block=True)
-            url = message['url']
-            json = message['json']
-            gid = json['gid']
-            qid = json['qid']
+            port = message.get('port')
+            ip = message.get('ip')
+            json = message.get('json', {})
+            gid = json.get('gid')
+            qid = json.get('qid')
             try:
-                response = requests.post(url, json=json)
-                result_dict = response.json()
-                permission = result_dict['permission']
+                authorized = publish_task(ip, port, json)
                 # None不处理，False告知权限不足
-                if permission is False:
+                if authorized is False:
                     permission_denied(gid=gid, qid=qid)
-                print(f"Message forwarded to {url}")
                 time.sleep(0.1)
             except:
                 send_message_to_cqhttp('连接错误', gid, qid)
@@ -37,12 +36,9 @@ class MessageHandlerThread(threading.Thread):
     def add_message_queue(self, service_name, command, args, gid, qid, is_user_call):
         service_info = ServiceRegistry.get_service(service_name)
         if service_info is not None:
-            service_ip = service_info['ip']
-            service_port = service_info['port']
-            endpoint = service_info['endpoints']['receive_command']
-            url = f"http://{service_ip}:{service_port}/{endpoint}"
             message_json = {
-                'url':url,
+                'ip': service_info['ip'],
+                'port': service_info['port'],
                 'json': {'command': command, 'args': args, 'gid': gid, 'qid': qid, 'is_user_call': is_user_call}
             }
             self.message_queue.put(message_json)

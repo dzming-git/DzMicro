@@ -22,7 +22,7 @@ class RouteInfo:
             if not cls._is_message_broker:
                 cls._service_conf = cls._config.get('service', {})
             else:
-                _message_broker_find = True
+                cls._message_broker_find = True
             cls._message_broker_conf_from_file = cls._config.get('message_broker', {})
             if not reload_flag:
                 cls._config_path = config_path
@@ -55,14 +55,6 @@ class RouteInfo:
     @classmethod
     def get_service_tags(cls):
         return cls._service_conf.get('tags')
-    
-    @classmethod
-    def get_service_endpoints_info(cls):
-        return cls._service_conf.get('endpoints')
-    
-    @classmethod
-    def get_service_endpoint(cls, usage):
-        return cls._service_conf.get('endpoints')[usage]
 
     # 消息代理配置方法
     @classmethod
@@ -94,22 +86,6 @@ class RouteInfo:
         if cls._message_broker_find:
             return cls._message_broker_conf_from_consul.get('port')
         return None
-    
-    @classmethod
-    def add_message_broker_endpoint(cls, usage, endpoint):
-        cls._message_broker_conf_from_consul['endpoints'][usage] = endpoint
-    
-    @classmethod
-    def get_message_broker_endpoints_info(cls):
-        if cls._is_message_broker:
-            return cls._message_broker_conf_from_file.get('endpoints')
-        return cls._message_broker_conf_from_consul.get('endpoints')
-
-    @classmethod
-    def get_message_broker_endpoint(cls, usage):
-        if cls._is_message_broker:
-            return cls._message_broker_conf_from_file.get('endpoints')[usage]
-        return cls._message_broker_conf_from_consul.get('endpoints')[usage]
     
     @classmethod
     def get_message_broker_consul_key(cls, usage):

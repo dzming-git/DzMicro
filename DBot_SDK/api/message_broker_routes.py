@@ -28,9 +28,7 @@ def message_broker_route_registration(app):
         # 返回响应
         return 'OK'
 
-    from DBot_SDK.conf import RouteInfo
-    service_commands_endpoint = RouteInfo.get_message_broker_endpoint('service_commands')
-    @app.route(f'/{service_commands_endpoint}', methods=['POST'])
+    @app.route(f'/api/v1/service_commands', methods=['POST'])
     def register_service_commands():
         '''
         接收服务程序的服务名和对应处理指令之间的映射关系
@@ -49,8 +47,7 @@ def message_broker_route_registration(app):
         else:
             return jsonify({'message': 'Invalid request'}), 400
     
-    service_message_endpoint = RouteInfo.get_message_broker_endpoint('service_message')
-    @app.route(f'/{service_message_endpoint}', methods=['POST'])
+    @app.route(f'/api/v1/service_message', methods=['POST'])
     def register_service_message():
         '''
         将服务程序传回的信息转发回信息源
@@ -63,27 +60,7 @@ def message_broker_route_registration(app):
         send_message_to_cqhttp(message, gid, qid)
         return jsonify({'message': 'OK'}), 200
     
-    service_endpoints_endpoint = RouteInfo.get_message_broker_endpoint('service_endpoints')
-    @app.route(f'/{service_endpoints_endpoint}', methods=['POST'])
-    def register_service_endpoints():
-        '''
-        接收服务程序的endpoint
-        '''
-        data = request.get_json()
-        service_name = data.get('service_name')
-        endpoints_info = data.get('endpoints_info')
-        if service_name and endpoints_info:
-            usages = list(endpoints_info.keys())
-            for usage in usages:
-                endpoint = endpoints_info[usage]
-                from DBot_SDK.app.message_handler.service_registry import ServiceRegistry
-                ServiceRegistry.add_service_endpoint(service_name, usage, endpoint)
-            return jsonify({'message': 'Bot commands registered successfully'}), 200
-        else:
-            return jsonify({'message': 'Invalid request'}), 400
-    
-    service_endpoints_endpoint = RouteInfo.get_message_broker_endpoint('service_listen')
-    @app.route(f'/{service_endpoints_endpoint}', methods=['POST'])
+    @app.route(f'/api/v1/service_listen', methods=['POST'])
     def register_service_listen():
         '''
         接收服务程序的监听申请

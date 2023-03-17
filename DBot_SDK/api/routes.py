@@ -4,8 +4,7 @@ def route_registration(app):
     from DBot_SDK.conf import RouteInfo
     from DBot_SDK.conf import Authority
     from DBot_SDK.utils import task_thread
-    receive_command_endpoint = RouteInfo.get_service_endpoint('receive_command')
-    @app.route(f'/{receive_command_endpoint}', methods=['POST'])
+    @app.route(f'/api/v1/receive_command', methods=['POST'])
     def receive_command():
         data = request.get_json()
         command = data.get('command')
