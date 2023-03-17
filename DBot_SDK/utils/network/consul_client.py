@@ -3,9 +3,14 @@ import consul
 import socket
 
 class ConsulClient:
-    def __init__(self, host='localhost', port=8500):
+    def __init__(self, host='localhost', port=8500, token=''):
         self.consul = consul.Consul(host=host, port=port)
-
+        self.set_token(token)
+    
+    def set_token(self, token):
+        if token:
+            self.consul.token = token
+    
     def register_service(self, service_name, service_port, service_tags=None):
         """
         注册服务到Consul
@@ -71,5 +76,46 @@ class ConsulClient:
                     print(f'{ip}:{port}已被{name}占用')
                     return False
         return True
+
+    def register_consul(self, app, name, port):
+        '''
+        服务开启前,注册consul
+        '''
+        id = self.register_service(name, port, [])
+        app.config.update({'id': id})
+
+    def deregister_service(self, app):
+        '''
+        服务结束后,注销consul
+        '''
+        id = app.config['id']
+        self.deregister_service(self, id)
+            
+    def discover_message_broker(self, service_name):
+        """
+        发现机器人消息代理
+        """
+        services = self.discover_services(service_name)
+        if services:
+            from DBot_SDK.conf import RouteInfo
+            message_broker = services[0]
+            RouteInfo.update_message_broker(ip=message_broker[0], port=message_broker[1])
+            return True
+        print('消息代理未开启')
+        return False
+
+    def message_broker_endpoints_upload(self):
+        """
+        消息代理专用
+        将自己的endpoint上传至consul的KV中
+        """
+        from DBot_SDK.conf import RouteInfo
+        service_endpoints_info = RouteInfo.get_message_broker_endpoints_info()
+        message_broker_consul_key = RouteInfo.get_message_broker_consul_key('message_broker_endpoints')
+        message_broker_endpoints_dict = {
+            message_broker_consul_key: service_endpoints_info
+        }
+        self.update_key_value(message_broker_endpoints_dict)
+
 
 consul_client = ConsulClient()

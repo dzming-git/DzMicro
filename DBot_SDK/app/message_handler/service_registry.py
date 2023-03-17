@@ -1,5 +1,5 @@
 import threading
-from DBot_SDK.utils.service_discovery.consul_client import consul_client
+from DBot_SDK.utils import consul_client
 from datetime import datetime
 
 class ServiceRegistry:

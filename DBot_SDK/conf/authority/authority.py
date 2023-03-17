@@ -1,5 +1,4 @@
 import yaml
-import os
 from DBot_SDK.utils import WatchDogThread
 
 class Authority:

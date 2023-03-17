@@ -6,8 +6,7 @@ import json
 import threading
 from werkzeug.serving import make_server
 from DBot_SDK.api import route_registration, message_broker_route_registration
-from DBot_SDK.utils.service_discovery import register_consul, discover_message_broker, deregister_service, message_broker_endpoints_upload
-from DBot_SDK.utils.service_discovery import consul_client
+from DBot_SDK.utils import consul_client
 from DBot_SDK.conf import ConfigFromUser
 
 
@@ -72,12 +71,12 @@ class ServerThread(threading.Thread):
 
         if ConfigFromUser.is_message_broker():
             message_broker_route_registration(self._app)
-            message_broker_endpoints_upload()
+            consul_client.message_broker_endpoints_upload()
         else:
             success_connect = False
             while True:
                 success_connect = \
-                    discover_message_broker(RouteInfo.get_message_broker_name()) and \
+                    consul_client.discover_message_broker(RouteInfo.get_message_broker_name()) and \
                     download_message_broker_endpoints()
                 if success_connect:
                     break
@@ -87,7 +86,7 @@ class ServerThread(threading.Thread):
             upload_service_endpoints()
             route_registration(self._app)
 
-        register_consul(self._app, self.server_name, port)
+        consul_client.register_consul(self._app, self.server_name, port)
         self._server = make_server(host=ip, port=port, app=self._app)
         return True
 
@@ -105,7 +104,7 @@ class ServerThread(threading.Thread):
         return False
         
     def destory_app(self):
-        deregister_service(self._app)
+        consul_client.deregister_service(self._app)
 
     def run(self):
         print(f'{self.server_name}已运行')

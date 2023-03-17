@@ -59,7 +59,7 @@ def message_broker_route_registration(app):
         message = data.get('message')
         gid = data.get('gid')
         qid = data.get('qid')
-        from DBot_SDK.utils.message_sender import send_message_to_cqhttp
+        from DBot_SDK.utils import send_message_to_cqhttp
         send_message_to_cqhttp(message, gid, qid)
         return jsonify({'message': 'OK'}), 200
     

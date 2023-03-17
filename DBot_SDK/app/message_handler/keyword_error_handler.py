@@ -1,5 +1,5 @@
 # keyword_error_handler.py
-from DBot_SDK.utils.message_sender import send_message_to_cqhttp
+from DBot_SDK.utils import send_message_to_cqhttp
 
 def keyword_error_handler(gid=None, qid=None):
     message = '关键词错误'

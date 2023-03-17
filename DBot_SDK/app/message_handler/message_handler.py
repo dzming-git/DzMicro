@@ -3,7 +3,7 @@ import re
 import requests
 import threading
 from DBot_SDK.app import BotCommands, keyword_error_handler, command_error_handler, permission_denied
-from DBot_SDK.utils.message_sender import send_message_to_cqhttp
+from DBot_SDK.utils import send_message_to_cqhttp
 from DBot_SDK.app import ServiceRegistry
 from queue import Queue
 import time
