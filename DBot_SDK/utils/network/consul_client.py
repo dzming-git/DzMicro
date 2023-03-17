@@ -1,15 +1,59 @@
 # consul_client.py
 import consul
 import socket
+import time
+import threading
+import json
+from DBot_SDK.utils import compare_dicts
+
+class WatchKVThread(threading.Thread):
+    def __init__(self, c):
+        super().__init__(name=f'WatchKV')
+        self._c = c
+        self._stop = False
+        self._kv = {}
+    
+    def stop(self):
+        self._stop = True
+    
+    def on_change_callback(self, data):
+        # 处理变化的数据
+        print("Data changed: ", data)
+
+    def run(self):
+        while not self._stop:
+            new_kv = {}
+
+            # 获取指定文件夹下的所有key
+            keys = self._c.kv.get('DBot_', keys=True)[1]
+
+            # 读取所有key的值，并将结果存储在字典中
+            for key in keys:
+                data = self._c.kv.get(key)[1].get('Value', '')
+                new_kv[key] = data
+                if type(data) is bytes:
+                    decoded_data = data.decode('utf-8')
+                    json_data = json.loads(decoded_data)
+            added, deleted, modified = compare_dicts(self._kv, new_kv)
+            if added:
+                print(f'added{added}')
+            if deleted:
+                print(f'deleted{deleted}')
+            if modified:
+                print(f'modified{modified}')
+            self._kv = new_kv
+            time.sleep(0.1)
 
 class ConsulClient:
     def __init__(self, host='localhost', port=8500, token=''):
         self.consul = consul.Consul(host=host, port=port)
         self.set_token(token)
-    
+        
     def set_token(self, token):
         if token:
             self.consul.token = token
+            self._watch_kv_thread = WatchKVThread(self.consul)
+            self._watch_kv_thread.start()
     
     def register_service(self, service_name, service_port, service_tags=None):
         """
@@ -26,7 +70,13 @@ class ConsulClient:
         将字典上传Consul
         """
         for key, value in dict_to_upload.items():
-            self.consul.kv.put(key, str(value))
+            while True:
+                try:
+                    self.consul.kv.put(key, str(value).encode('utf-8'))
+                    break
+                except consul.base.ConsulException:
+                    print(f'上传字典{dict}失败，正在重试')
+                    time.sleep(1)
 
     def download_key_value(self, key: str):
         """
