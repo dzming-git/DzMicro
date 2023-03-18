@@ -27,25 +27,6 @@ def message_broker_route_registration(app):
             message_handler_thread.message_handler(raw_message, gid=group_id, qid=sender_id)
         # 返回响应
         return 'OK'
-
-    @app.route(f'/api/v1/service_commands', methods=['POST'])
-    def register_service_commands():
-        '''
-        接收服务程序的服务名和对应处理指令之间的映射关系
-        '''
-        from DBot_SDK.app.message_handler.bot_commands import BotCommands
-
-        data = request.get_json()
-        service_name = data.get('service_name')
-        keyword = data.get('keyword')
-        BotCommands.add_keyword(keyword, service_name)
-        commands = data.get('commands')
-        if service_name and commands:
-            for command in commands:
-                BotCommands.add_commands(keyword, command)            
-            return jsonify({'message': 'Bot commands registered successfully'}), 200
-        else:
-            return jsonify({'message': 'Invalid request'}), 400
     
     @app.route(f'/api/v1/service_message', methods=['POST'])
     def register_service_message():

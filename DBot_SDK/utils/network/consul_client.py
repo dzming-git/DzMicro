@@ -4,6 +4,8 @@ import socket
 import time
 import threading
 import json
+import re
+from typing import Dict
 from DBot_SDK.utils import compare_dicts
 
 class WatchKVThread(threading.Thread):
@@ -15,10 +17,30 @@ class WatchKVThread(threading.Thread):
     
     def stop(self):
         self._stop = True
-    
-    def on_change_callback(self, data):
-        # 处理变化的数据
-        print("Data changed: ", data)
+
+    def on_add_kv(self, added_dict: Dict):
+        from DBot_SDK.app.message_handler.bot_commands import BotCommands
+        print(f'添加\n{added_dict}\n')
+        pattern = r"DBot_(\w+)/config"
+        for key, value in added_dict.items():
+            match = re.search(pattern, key)
+            if match:
+                service_name = f'DBot_{match.group(1)}'
+                keyword = value.get('keyword')
+                BotCommands.add_keyword(keyword, service_name)
+                commands = value.get('commands')
+                if service_name and commands:
+                    for command in commands:
+                        BotCommands.add_commands(keyword, command)
+                
+
+    def on_deleted_kv(self, deleted_dict):
+        #TODO 配置文件删除
+        print(f'删除\n{deleted_dict}\n')
+
+    def on_modified_kv(self, modified_dict):
+        #TODO 配置文件修改
+        print(f'修改\n{modified_dict}\n')
 
     def run(self):
         while not self._stop:
@@ -30,25 +52,37 @@ class WatchKVThread(threading.Thread):
             # 读取所有key的值，并将结果存储在字典中
             for key in keys:
                 data = self._c.kv.get(key)[1].get('Value', '')
-                new_kv[key] = data
-                if type(data) is bytes:
-                    decoded_data = data.decode('utf-8')
-                    json_data = json.loads(decoded_data)
+                json_data = self.decode_data(data)
+                if json_data is not None:
+                    new_kv[key] = json_data
             added, deleted, modified = compare_dicts(self._kv, new_kv)
             if added:
-                print(f'added{added}')
+                self.on_add_kv(added)
             if deleted:
-                print(f'deleted{deleted}')
+                self.on_deleted_kv(deleted)
             if modified:
-                print(f'modified{modified}')
+                self.on_modified_kv(modified)
+
             self._kv = new_kv
             time.sleep(0.1)
+
+    def decode_data(self, data):
+        if data is None:
+            return None
+        elif type(data) is bytes:
+            decoded_data = data.decode('utf-8')
+        elif type(data) is str:
+            decoded_data = data
+        json_data = json.loads(decoded_data)
+        return json_data
 
 class ConsulClient:
     def __init__(self, host='localhost', port=8500, token=''):
         self.consul = consul.Consul(host=host, port=port)
         self.set_token(token)
         
+
+    
     def set_token(self, token):
         if token:
             self.consul.token = token

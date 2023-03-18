@@ -17,11 +17,6 @@ def upload_service_commands():
         'commands': commands
     })
     consul_client.update_key_value({k: v})
-    requests.post(f'http://{message_broker_ip}:{message_broker_port}/api/v1/service_commands', 
-                  json={
-        'service_name': service_name, 
-        'keyword': keyword,
-        'commands': commands})
 
 def publish_task(ip, port, json):
     print(f'{ip} {port} {json}')
