@@ -5,6 +5,7 @@ import time
 import threading
 import json
 import re
+import random
 from typing import Dict
 from DBot_SDK.utils import compare_dicts
 
@@ -18,21 +19,42 @@ class WatchKVThread(threading.Thread):
     def stop(self):
         self._stop = True
 
+    def on_config_changed(self, config_dict: Dict, change):
+        from DBot_SDK.app import BotCommands
+        if change == 'add':
+            pattern = r"DBot_(\w+)/config"
+            for key, value in config_dict.items():
+                match = re.search(pattern, key)
+                if match:
+                    service_name = f'DBot_{match.group(1)}'
+                    keyword = value.get('keyword')
+                    BotCommands.add_keyword(keyword, service_name)
+                    commands = value.get('commands')
+                    if service_name and commands:
+                        for command in commands:
+                            BotCommands.add_commands(keyword, command)
+
+    def on_listener_changed(self, listener_dict: Dict, change):
+        from DBot_SDK.utils import listener_manager
+        if change == 'add':
+            pattern = r"DBot_(\w+)/listener"
+            for key, value in listener_dict.items():
+                match = re.search(pattern, key)
+                if match:
+                    service_name = f'DBot_{match.group(1)}'
+                    keyword = value.get('keyword')
+                    command = value.get('command')
+                    ip = value.get('ip')
+                    port = value.get('port')
+                    gid = value.get('gid')
+                    qid = value.get('qid')
+                    should_listen = True
+                    listener_manager.update_listeners(service_name, keyword, command, ip, port, gid, qid, should_listen)
+
     def on_add_kv(self, added_dict: Dict):
-        from DBot_SDK.app.message_handler.bot_commands import BotCommands
         print(f'添加\n{added_dict}\n')
-        pattern = r"DBot_(\w+)/config"
-        for key, value in added_dict.items():
-            match = re.search(pattern, key)
-            if match:
-                service_name = f'DBot_{match.group(1)}'
-                keyword = value.get('keyword')
-                BotCommands.add_keyword(keyword, service_name)
-                commands = value.get('commands')
-                if service_name and commands:
-                    for command in commands:
-                        BotCommands.add_commands(keyword, command)
-                
+        self.on_config_changed(added_dict, 'add')
+        self.on_listener_changed(added_dict, 'add')
 
     def on_deleted_kv(self, deleted_dict):
         #TODO 配置文件删除
@@ -141,11 +163,20 @@ class ConsulClient:
 
     def discover_services(self, service_name):
         """
-        发现服务
+        发现服务，返回所有设备信息
         """
-        services = self.consul.catalog.service(service_name)[1]
-        return [(service['ServiceAddress'], service['ServicePort']) for service in services]
+        # 过滤掉不健康的服务
+        services = self.consul.health.service(service_name, passing=True)[1]
+        return [(service.get('Service', {}).get('Address'), service.get('Service', {}).get('Port')) for service in services]
 
+    def discover_service(self, service_name):
+        """
+        发现服务，随机返回其中一个设备信息
+        """
+        services = self.discover_services(service_name)
+        return random.choice(services)
+
+# raise IndexError('Cannot choose from an empty sequence') from None
     def check_port_available(self, sname: str, sip: str, sport: int):
         if sip == '0.0.0.0' or sip == '127.0.0.1':
             sip = socket.gethostbyname(socket.gethostname())

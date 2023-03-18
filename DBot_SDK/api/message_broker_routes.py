@@ -41,26 +41,6 @@ def message_broker_route_registration(app):
         from DBot_SDK.utils import send_message_to_cqhttp
         send_message_to_cqhttp(message, gid, qid)
         return jsonify({'message': 'OK'}), 200
-    
-    @app.route(f'/api/v1/service_listen', methods=['POST'])
-    def register_service_listen():
-        '''
-        接收服务程序的监听申请
-        '''
-        data = request.get_json()
-        service_name = data.get('service_name')
-        keyword = data.get('keyword')
-        command = data.get('command')
-        gid = data.get('gid')
-        qid = data.get('qid')
-        should_listen = data.get('should_listen', False)
-
-        if service_name and keyword and command:
-            from DBot_SDK.app import ServiceRegistry
-            ServiceRegistry.update_listens(service_name, command, gid, qid, should_listen)
-            return jsonify({'message': 'Bot listen registered successfully'}), 200
-        else:
-            return jsonify({'message': 'Invalid request'}), 400
 
     # 定义心跳路径
     @app.route('/api/v1/heartbeat/<name>')
