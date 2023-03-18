@@ -30,7 +30,7 @@ def auto_echo(gid=None, qid=None, args=[]):
         message_broker_ip = RouteInfo.get_message_broker_ip()
         message_broker_port = RouteInfo.get_message_broker_port()
         service_name = RouteInfo.get_service_name()
-        #TODO 考虑要不要将keyword设置为全局变量，这里似乎可以为其他服务程序开启监听
+        #TODO 这里似乎可以为其他服务程序开启监听
         keyword = KEYWORD
         command = '复读'
         requests.post(f'http://{message_broker_ip}:{message_broker_port}/api/v1/service_listen', 
