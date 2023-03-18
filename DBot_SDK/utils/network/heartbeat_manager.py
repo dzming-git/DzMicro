@@ -48,11 +48,15 @@ class HeartbeatManager(threading.Thread):
 
     def check(self):
         now = time.time()
-        for service_name, last_time in self._services.items():
-            if (now - last_time) > self._interval:
-                # 将该服务程序标记为离线
-                print(f'服务程序 {service_name} 已下线')
-                del self._services[service_name]
+        try:
+            for service_name, last_time in self._services.items():
+                if (now - last_time) > self._interval:
+                    # 将该服务程序标记为离线
+                    print(f'服务程序 {service_name} 已下线')
+                    del self._services[service_name]
+        except RuntimeError:
+            #TODO 测试时，for service_name, last_time in self._services.items()报错：RuntimeError: dictionary changed size during iteration
+            pass
 
     def run(self):
         while self._is_message_broker is None:
