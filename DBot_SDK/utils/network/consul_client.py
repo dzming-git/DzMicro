@@ -53,11 +53,16 @@ class WatchKVThread(threading.Thread):
                 except:
                     print('下载字典失败，正在重试')
                     time.sleep(1)
-            
 
             # 读取所有key的值，并将结果存储在字典中
             for key in keys:
-                data = self._c.kv.get(key)[1].get('Value', '')
+                while True:
+                    try:
+                        data = self._c.kv.get(key)[1].get('Value', '')
+                        break
+                    except:
+                        print('下载字典失败，正在重试')
+                        time.sleep(1)
                 json_data = self.decode_data(data)
                 if json_data is not None:
                     new_kv[key] = json_data
