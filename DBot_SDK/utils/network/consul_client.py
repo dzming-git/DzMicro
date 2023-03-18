@@ -45,9 +45,15 @@ class WatchKVThread(threading.Thread):
     def run(self):
         while not self._stop:
             new_kv = {}
-
-            # 获取指定文件夹下的所有key
-            keys = self._c.kv.get('DBot_', keys=True)[1]
+            while True:
+                try:
+                    # 获取指定文件夹下的所有key
+                    keys = self._c.kv.get('DBot_', keys=True)[1]
+                    break
+                except:
+                    print('下载字典失败，正在重试')
+                    time.sleep(1)
+            
 
             # 读取所有key的值，并将结果存储在字典中
             for key in keys:
