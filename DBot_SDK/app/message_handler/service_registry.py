@@ -4,7 +4,17 @@ from datetime import datetime
 
 class ServiceRegistry:
     '''
-    _listens=[
+    _services = {
+        'DBot_example': {
+            'ip':
+            'port':
+            'last_update_time':
+        }
+    }
+    '''
+    _services = {}
+    '''
+    _listens = [
         {
             'service_name':
             'command':
@@ -14,7 +24,6 @@ class ServiceRegistry:
     ]
 
     '''
-    _services = {}
     _listens = []
 
     @classmethod
@@ -22,7 +31,6 @@ class ServiceRegistry:
         cls._services[service_name] = {
             'ip': ip,
             'port': port,
-            'endpoints': {},
             'last_update_time': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
         print(f"Registered service {service_name} at {ip}:{port}")
@@ -49,14 +57,6 @@ class ServiceRegistry:
             if cls.add_service_from_consul(service_name):
                 service_info = cls._services.get(service_name)
         return service_info
-    
-    @classmethod
-    def add_service_endpoint(cls, service_name, usage, endpoint):
-        if service_name in cls._services:
-            cls._services[service_name]['endpoints'][usage] = endpoint
-        else:
-            if cls.add_service_from_consul(service_name):
-                cls._services[service_name]['endpoints'][usage] = endpoint
     
     @classmethod
     def update_listens(cls, service_name, command, gid, qid, should_listen):
@@ -86,13 +86,6 @@ class ServiceRegistry:
         获取目前监听状态的服务和申请监听的指令
         '''
         return cls._listens
-
-    @classmethod
-    def get_service_endpoint(cls, service_name, usage):
-        try:
-            return cls._services[service_name]['endpoints'][usage]
-        except KeyError:
-            return None
 
     @classmethod
     def update_services(cls):
