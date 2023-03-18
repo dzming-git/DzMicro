@@ -5,3 +5,5 @@ from .message_handler import ServiceRegistry
 from .message_handler import command_error_handler
 from .message_handler import keyword_error_handler
 from .message_handler import permission_denied
+from .message_handler import service_offline
+from .message_handler import connect_error_handler

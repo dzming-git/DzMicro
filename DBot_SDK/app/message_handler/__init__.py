@@ -3,3 +3,5 @@ from .service_registry import ServiceRegistry
 from .command_error_handler import command_error_handler
 from .keyword_error_handler import keyword_error_handler
 from .permission_denied_handler import permission_denied
+from .service_offline_handler import service_offline
+from .connect_error_handler import connect_error_handler
