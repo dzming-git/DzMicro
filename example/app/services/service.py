@@ -1,4 +1,5 @@
 import time
+import socket
 from DBot_SDK import send_message, Authority
 
 def help(gid=None, qid=None, args=[]):
@@ -23,23 +24,39 @@ def countdown(gid=None, qid=None, args=[]):
             time.sleep(1)
         send_message('倒计时 结束', gid, qid)
 
+def get_ip(gid=None, qid=None, args=[]):
+    hostname = socket.gethostname()
+    ip_address = socket.gethostbyname(hostname)
+    send_message(ip_address, gid, qid)
+
 def auto_echo(gid=None, qid=None, args=[]):
+    #TODO 这段功能需要放在SDK中
     if not args or args[0] == '开始':
         from DBot_SDK.conf import RouteInfo
+        from DBot_SDK.utils.network import consul_client
         import requests
+        import json
         message_broker_ip = RouteInfo.get_message_broker_ip()
         message_broker_port = RouteInfo.get_message_broker_port()
         service_name = RouteInfo.get_service_name()
+        # ip需要获取IPV4，配置中是0.0.0.0，不能从配置文件中读取
+        hostname = socket.gethostname()
+        ip = socket.gethostbyname(hostname)
+        port = RouteInfo.get_service_port()
         #TODO 这里似乎可以为其他服务程序开启监听
         keyword = KEYWORD
         command = '复读'
-        requests.post(f'http://{message_broker_ip}:{message_broker_port}/api/v1/service_listen', 
-                    json={'service_name': service_name, 
-                            'keyword': keyword,
-                            'command': command,
-                            'gid': gid,
-                            'qid': qid,
-                            'should_listen': True})
+        k = f'{service_name}/listener'
+        v = json.dumps({
+            'service_name': service_name, 
+            'keyword': keyword,
+            'command': command,
+            'ip': ip,
+            'port': port,
+            'gid': gid,
+            'qid': qid,
+            'should_listen': True})
+        consul_client.update_key_value({k: v})
     send_message('自动复读开始', gid, qid)
 
 def echo(gid=None, qid=None, args=[]):
@@ -54,6 +71,10 @@ func_dict = {
         },
     '倒计时': {
         'func': countdown,
+        'permission': 'USER'
+        },
+    'IP':{
+        'func': get_ip,
         'permission': 'USER'
         },
     '自动复读': {
