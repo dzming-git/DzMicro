@@ -1,5 +1,6 @@
 # message_broker_routes.py
 from flask import request, jsonify
+from DBot_SDK.utils.network import heartbeat_manager
 
 def message_broker_route_registration(app):
     @app.route('/', methods=['POST'])
@@ -60,6 +61,13 @@ def message_broker_route_registration(app):
             return jsonify({'message': 'Bot listen registered successfully'}), 200
         else:
             return jsonify({'message': 'Invalid request'}), 400
+
+    # 定义心跳路径
+    @app.route('/api/v1/heartbeat/<name>')
+    def heartbeat(name):
+        # 处理心跳请求，并返回相应
+        heartbeat_manager.register(name)
+        return 'Heartbeat OK for service {}'.format(name)
 
     @app.route('/health')
     def health_check():

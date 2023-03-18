@@ -1,10 +1,9 @@
 # message_handler.py
 import re
-import requests
 import threading
-from DBot_SDK.app import BotCommands, keyword_error_handler, command_error_handler, permission_denied
+from DBot_SDK.app import BotCommands, keyword_error_handler, command_error_handler, permission_denied, service_offline, connect_error_handler
 from DBot_SDK.utils import send_message_to_cqhttp
-from DBot_SDK.utils.network.app_utils import publish_task
+from DBot_SDK.utils.network import publish_task, heartbeat_manager
 from DBot_SDK.app import ServiceRegistry
 from queue import Queue
 import time
@@ -19,26 +18,31 @@ class MessageHandlerThread(threading.Thread):
     def run(self):
         while not self.stop:
             message = self.message_queue.get(block=True)
-            port = message.get('port')
             ip = message.get('ip')
+            port = message.get('port')
+            service_name = message.get('service_name')
             json = message.get('json', {})
             gid = json.get('gid')
             qid = json.get('qid')
-            try:
-                authorized = publish_task(ip, port, json)
-                # None不处理，False告知权限不足
-                if authorized is False:
-                    permission_denied(gid=gid, qid=qid)
-                time.sleep(0.1)
-            except:
-                send_message_to_cqhttp('连接错误', gid, qid)
+            if heartbeat_manager.check_online(service_name) is False:
+                service_offline(gid, qid)
+            else:
+                try:
+                    authorized = publish_task(ip, port, json)
+                    # None不处理，False告知权限不足
+                    if authorized is False:
+                        permission_denied(gid=gid, qid=qid)
+                    time.sleep(0.1)
+                except:
+                    connect_error_handler(gid, qid)
     
     def add_message_queue(self, service_name, command, args, gid, qid, is_user_call):
         service_info = ServiceRegistry.get_service(service_name)
         if service_info is not None:
             message_json = {
-                'ip': service_info['ip'],
-                'port': service_info['port'],
+                'ip': service_info.get('ip'),
+                'port': service_info.get('port'),
+                'service_name': service_name,
                 'json': {'command': command, 'args': args, 'gid': gid, 'qid': qid, 'is_user_call': is_user_call}
             }
             self.message_queue.put(message_json)

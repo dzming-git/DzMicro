@@ -1,14 +1,12 @@
 # app.py
 from flask import Flask
-import requests
 import time
-import json
 import threading
 from werkzeug.serving import make_server
 from DBot_SDK.api import route_registration, message_broker_route_registration
 from DBot_SDK.utils import consul_client
 from DBot_SDK.conf import ConfigFromUser
-from DBot_SDK.utils.network.app_utils import upload_service_commands
+from DBot_SDK.utils.network import heartbeat_manager, upload_service_commands
 
 class ServerThread(threading.Thread):
     def init(self):
@@ -31,6 +29,10 @@ class ServerThread(threading.Thread):
         super().__init__(name=f'ServerThread_{self.server_name}')
         self._app = Flask(__name__)
 
+        # 设置心跳管理器身份，并启动
+        heartbeat_manager.set_identity(is_message_broker=ConfigFromUser.is_message_broker())
+        heartbeat_manager.start()
+        
         if ConfigFromUser.is_message_broker():
             message_broker_route_registration(self._app)
         else:
