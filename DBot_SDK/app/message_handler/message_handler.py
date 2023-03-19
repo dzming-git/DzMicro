@@ -2,9 +2,8 @@
 import re
 import threading
 from DBot_SDK.app import BotCommands, keyword_error_handler, command_error_handler, permission_denied, service_offline, connect_error_handler
-from DBot_SDK.utils.network import publish_task, heartbeat_manager
-from DBot_SDK.utils import listener_manager
-from DBot_SDK.utils.network import consul_client
+from DBot_SDK.utils.network import publish_task, heartbeat_manager, consul_client
+from DBot_SDK.utils import listener_manager, judge_same_listener
 from queue import Queue
 import time
 
@@ -38,8 +37,6 @@ class MessageHandlerThread(threading.Thread):
     
     def add_message_queue(self, service_name, command, args, gid, qid, is_user_call, service=None):
         # 发送给监听者会传入service参数
-        if service is None:
-            service = consul_client.discover_service(service_name)
         if service:
             service_ip = service[0]
             service_port = service[1]
@@ -66,29 +63,63 @@ class MessageHandlerThread(threading.Thread):
                 return keyword, command, args
             else:
                 return None, None, None
+        
+        listeners = listener_manager.get_listeners()
         keywords = list(BotCommands.get_keywords())
         keyword, command, args = message_split(message)
+
+        include_keyword = False
+        correct_keyword = False
+
+        # args0表示指令相应， args1表示监听的转发
+        arg0 = None
+        args1 = []
         #TODO 含有关键词的不按照监听的方式转发，未来可能有监听指令的功能，待完善
         if keyword:
+            include_keyword = True
             if keyword not in keywords:
                 keyword_error_handler(gid, qid)
             else:
+                correct_keyword = True
                 commands = BotCommands.get_commands(keyword)
                 if command not in commands:
                     command_error_handler(gid, qid)
                 service_name = BotCommands.get_service_name(keyword)
-                self.add_message_queue(service_name, command, args, gid, qid, True)
-                return
+                is_user_call = True
+                server = consul_client.discover_service(service_name)
+                # 
+                arg0 = (service_name, command, args, gid, qid, is_user_call, server)
+                # self.add_message_queue(service_name, command, args, gid, qid, True)
+                # return
         # 监听消息转发
-        listeners = listener_manager.get_listeners()
         for listener in listeners:
-            service_name = listener.get('service_name')
-            port = listener.get('port')
-            ip = listener.get('ip')
-            command = listener.get('command')
-            listen_gid = listener.get('gid')
-            listen_qid = listener.get('qid')
-            if gid == listen_gid:
-                self.add_message_queue(service_name, command, [message], gid, qid, False, service=(ip, port))
+            listener_service_name = listener.get('service_name')
+            listener_port = listener.get('port')
+            listener_ip = listener.get('ip')
+            listener_command = listener.get('command')
+            listener_gid = listener.get('gid')
+            listener_qid = listener.get('qid')
+            is_user_call = False
+            server = listener_ip, listener_port
+            if include_keyword and correct_keyword:
+                if judge_same_listener(listener=listener,
+                                       service_name=service_name,
+                                       keyword=keyword,
+                                       command=listener.get('command'),  # 凑条件通过判断
+                                       gid=gid,
+                                       qid=qid):
+                    if command == listener.get('request_command'):  # 接收到的指令是申请监听的指令
+                        service_name, command, args, gid, qid, is_user_call, server = arg0
+                        server = listener_ip, listener_port
+                        arg0 = (service_name, command, args, gid, qid, is_user_call, server)
+            elif gid is None:  # 私聊
+                if qid == listener_qid:
+                    args1.append((listener_service_name, listener_command, [message], gid, qid, is_user_call, server))
+            elif gid == listener_gid:  # 群聊
+                args1.append((listener_service_name, listener_command, [message], gid, qid, is_user_call, server))
+        if arg0:
+            self.add_message_queue(*arg0)
+        for arg in args1:
+            self.add_message_queue(*arg)
 
 message_handler_thread = MessageHandlerThread()
