@@ -1,6 +1,6 @@
 import time
 import socket
-from DBot_SDK import send_message, Authority
+from DBot_SDK import send_message, Authority, request_listen
 
 def help(gid=None, qid=None, args=[]):
     permission_level = Authority.get_permission_level(gid, qid)
@@ -30,34 +30,14 @@ def get_ip(gid=None, qid=None, args=[]):
     send_message(ip_address, gid, qid)
 
 def auto_echo(gid=None, qid=None, args=[]):
-    #TODO 这段功能需要放在SDK中
-    if not args or args[0] == '开始':
-        from DBot_SDK.conf import RouteInfo
-        from DBot_SDK.utils.network import consul_client
-        import requests
-        import json
-        message_broker_ip = RouteInfo.get_message_broker_ip()
-        message_broker_port = RouteInfo.get_message_broker_port()
-        service_name = RouteInfo.get_service_name()
-        # ip需要获取IPV4，配置中是0.0.0.0，不能从配置文件中读取
-        hostname = socket.gethostname()
-        ip = socket.gethostbyname(hostname)
-        port = RouteInfo.get_service_port()
-        #TODO 这里似乎可以为其他服务程序开启监听
-        keyword = KEYWORD
-        command = '复读'
-        k = f'{service_name}/listener'
-        v = json.dumps({
-            'service_name': service_name, 
-            'keyword': keyword,
-            'command': command,
-            'ip': ip,
-            'port': port,
-            'gid': gid,
-            'qid': qid,
-            'should_listen': True})
-        consul_client.update_key_value({k: v})
-    send_message('自动复读开始', gid, qid)
+    request_command = '自动复读'
+    command = '复读'
+    if not args or args[0] == '开始':        
+        request_listen(request_command, command, gid, qid, True)
+        send_message('自动复读开始', gid, qid)
+    elif args[0] == '停止':
+        request_listen(request_command, command, gid, qid, False)
+        send_message('自动复读停止', gid, qid)
 
 def echo(gid=None, qid=None, args=[]):
     if args:
