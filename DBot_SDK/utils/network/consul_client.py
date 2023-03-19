@@ -45,8 +45,10 @@ class WatchKVThread(threading.Thread):
                     #TODO 需不需要比较service_name和value中的service_name是否一致？
                     listener_manager.update_listeners(value)
                 elif change == 'modify':
-                    #TODO 完善listener_manager.update_listeners的功能，让他可以自动适应添加与修改
-                    pass
+                    listener_manager.update_listeners(value.get('old'), is_rm=True)
+                    listener_manager.update_listeners(value.get('new'))
+                elif change == 'delete':
+                    listener_manager.update_listeners(value, is_rm=True)
 
 
     def on_add_kv(self, added_dict: Dict):
