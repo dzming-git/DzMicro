@@ -36,20 +36,18 @@ class WatchKVThread(threading.Thread):
 
     def on_listener_changed(self, listener_dict: Dict, change):
         from DBot_SDK.utils import listener_manager
-        if change == 'add':
-            pattern = r"DBot_(\w+)/listener"
-            for key, value in listener_dict.items():
-                match = re.search(pattern, key)
-                if match:
+        pattern = r"DBot_(\w+)/listeners"
+        for key, value in listener_dict.items():
+            match = re.search(pattern, key)
+            if match:
+                if change == 'add':
                     service_name = f'DBot_{match.group(1)}'
-                    keyword = value.get('keyword')
-                    command = value.get('command')
-                    ip = value.get('ip')
-                    port = value.get('port')
-                    gid = value.get('gid')
-                    qid = value.get('qid')
-                    should_listen = True
-                    listener_manager.update_listeners(service_name, keyword, command, ip, port, gid, qid, should_listen)
+                    #TODO 需不需要比较service_name和value中的service_name是否一致？
+                    listener_manager.update_listeners(value)
+                elif change == 'modify':
+                    #TODO 完善listener_manager.update_listeners的功能，让他可以自动适应添加与修改
+                    pass
+
 
     def on_add_kv(self, added_dict: Dict):
         print(f'添加\n{added_dict}\n')
@@ -59,10 +57,14 @@ class WatchKVThread(threading.Thread):
     def on_deleted_kv(self, deleted_dict):
         #TODO 配置文件删除
         print(f'删除\n{deleted_dict}\n')
+        self.on_config_changed(deleted_dict, 'delete')
+        self.on_listener_changed(deleted_dict, 'delete')
 
     def on_modified_kv(self, modified_dict):
         #TODO 配置文件修改
         print(f'修改\n{modified_dict}\n')
+        self.on_config_changed(modified_dict, 'modify')
+        self.on_listener_changed(modified_dict, 'modify')
 
     def run(self):
         while not self._stop:
