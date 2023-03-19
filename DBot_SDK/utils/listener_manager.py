@@ -1,3 +1,5 @@
+from DBot_SDK.utils import judge_same_listener
+
 class ListenerManager:
     '''
     _listens = [
@@ -10,40 +12,42 @@ class ListenerManager:
     ]
 
     '''
-    _listeners = []
+    def __init__(self):
+        self._listeners = []
     
-    def update_listeners(self, service_name, keyword, command, ip, port, gid, qid, should_listen):
-        #TODO 删除监听还没写
-        #TODO 如果同一个服务在多太设备上运行，只有一个服务可以开启监听，待完善
-        #TODO 如果同一个服务在多太设备上运行，执行监听任务的服务意外关闭，需要将监听切换到其他设备上
-        if should_listen:
+    # 平台程序使用
+    def update_listeners(self, consul_listeners):
+        #TODO 如果同一个服务在多设备上运行，只有一个服务可以开启监听，待完善
+        #TODO 如果同一个服务在多设备上运行，执行监听任务的服务意外关闭，需要将监听切换到其他设备上
+        for consul_listener in consul_listeners:
             should_add = True
             for listener in self._listeners:
-                # 相同服务名、相同关键词、同样指令、同人私聊或同群群聊，则判定为同一个监听者
-                if \
-                    service_name == listener.get('service_name') and \
-                    keyword == listener.get('keyword') and \
-                    command == listener.get('command') and \
-                    gid == listener.get('gid'):
-                    if (gid is None and qid == listener.get('qid')) or gid == listener.get('gid'):
+                if judge_same_listener(listener=listener,
+                                    service_name=consul_listener.get('service_name'),
+                                    keyword=consul_listener.get('keyword'),
+                                    command=consul_listener.get('command'),
+                                    gid=consul_listener.get('gid'),
+                                    qid=consul_listener.get('qid')):
                         should_add = False
             if should_add:
-                self._listeners.append({
-                    'service_name': service_name,
-                    'keyword': keyword,
-                    'command': command,
-                    'ip': ip,
-                    'port': port,
-                    'gid': gid,
-                    'qid': qid
-                })
-            else:
-                pass
+                self._listeners.append(consul_listener)
     
     def get_listeners(self):
         '''
         获取目前监听状态的服务和申请监听的指令
         '''
-        return self._listeners
+        # 创建一个空列表，用于存储具有 should_listen 属性且其值为 True 的对象
+        should_listen_listeners = []
+
+        # 遍历 self._listeners 列表中的每个元素
+        for listener in self._listeners:
+            # 检查该元素是否具有 should_listen 属性，并且其值为 True
+            if listener.get('should_listen', False):
+                # 如果满足条件，则将该元素添加到 should_listen_listeners 列表中
+                should_listen_listeners.append(listener)
+
+        # 返回 should_listen_listeners 列表
+        return should_listen_listeners
+
 
 listener_manager = ListenerManager()
