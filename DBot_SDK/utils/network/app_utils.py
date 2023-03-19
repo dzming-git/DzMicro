@@ -30,17 +30,21 @@ def request_listen(request_command, command, gid, qid, should_listen):
     port = RouteInfo.get_service_port()
     keyword = FuncDict.get_keyword()
     k = f'{service_name}/listeners'
-    consul_listeners = consul_client.download_key_value(k)  # List[Dict]
-    consul_listeners = [] if consul_listeners is None else consul_listeners
+    json_str = consul_client.download_key_value(k)
+    if json_str is None:
+        consul_listeners = []
+    else:
+        consul_listeners = json.loads(json_str)  # List[Dict]
+        consul_listeners = [] if consul_listeners is None else consul_listeners
     # 删除同一个监听配置，再添加新的配置
-    for consul_listener in consul_listeners:
+    for i, consul_listener in enumerate(consul_listeners):
         if judge_same_listener(listener=consul_listener,
                             service_name=service_name,
                             keyword=keyword,
                             command=command,
                             gid=gid,
                             qid=qid):
-            consul_listeners.pop(consul_listener)
+            consul_listeners.pop(i)
             break
     consul_listeners.append({
         'service_name': service_name, 
