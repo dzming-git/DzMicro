@@ -51,7 +51,7 @@ def request_listen(request_command, command, gid, qid, should_listen):
         'keyword': keyword,
         'request_command': request_command,
         'command': command,
-        'ip': ip,
+        'ip': ip, 
         'port': port,
         'gid': gid,
         'qid': qid,

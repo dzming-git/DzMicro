@@ -20,8 +20,8 @@ class FuncDict:
     
     @classmethod
     def get_func(cls, command):
-        return cls._func_dict.get(command, {}).get('func')
+        return cls._func_dict.get(command).get('func')
     
     @classmethod
     def get_permission(cls, command):
-        return cls._func_dict.get(command, {}).get('permission')
+        return cls._func_dict.get(command).get('permission')

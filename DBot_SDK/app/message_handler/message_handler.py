@@ -87,12 +87,11 @@ class MessageHandlerThread(threading.Thread):
                 service_name = BotCommands.get_service_name(keyword)
                 is_user_call = True
                 server = consul_client.discover_service(service_name)
-                if not server:
+                if server is not None:
                     arg0 = (service_name, command, args, gid, qid, is_user_call, server)
                 else:
                     connect_error_handler(gid, qid)
-                # self.add_message_queue(service_name, command, args, gid, qid, True)
-                # return
+
         # 监听消息转发
         for listener in listeners:
             listener_service_name = listener.get('service_name')

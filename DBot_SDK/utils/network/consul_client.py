@@ -45,6 +45,7 @@ class WatchKVThread(threading.Thread):
                     #TODO 需不需要比较service_name和value中的service_name是否一致？
                     listener_manager.update_listeners(value)
                 elif change == 'modify':
+                    #TODO 完善listener_manager.update_listeners的功能，让他可以自动适应添加与修改
                     listener_manager.update_listeners(value.get('old'), is_rm=True)
                     listener_manager.update_listeners(value.get('new'))
                 elif change == 'delete':
@@ -180,6 +181,8 @@ class ConsulClient:
         发现服务，随机返回其中一个设备信息
         """
         services = self.discover_services(service_name)
+        if not services:
+            return None
         return random.choice(services)
 
 # raise IndexError('Cannot choose from an empty sequence') from None
