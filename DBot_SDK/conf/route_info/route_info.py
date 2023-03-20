@@ -54,7 +54,7 @@ class RouteInfo:
 
     @classmethod
     def get_service_tags(cls):
-        return cls._service_conf.get('tags')
+        return cls._service_conf.get('tags', [])
 
     # 消息代理配置方法
     @classmethod
@@ -86,6 +86,14 @@ class RouteInfo:
         if cls._message_broker_find:
             return cls._message_broker_conf_from_consul.get('port')
         return None
+    
+    @classmethod
+    def get_message_broker_tags(cls):
+        if cls._is_message_broker:
+            return cls._message_broker_conf_from_file.get('tags')
+        if cls._message_broker_find:
+            return cls._message_broker_conf_from_consul.get('tags')
+        return []
     
     @classmethod
     def get_message_broker_consul_key(cls, usage):

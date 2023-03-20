@@ -185,7 +185,6 @@ class ConsulClient:
             return None
         return random.choice(services)
 
-# raise IndexError('Cannot choose from an empty sequence') from None
     def check_port_available(self, sname: str, sip: str, sport: int):
         if sip == '0.0.0.0' or sip == '127.0.0.1':
             sip = socket.gethostbyname(socket.gethostname())
@@ -212,11 +211,11 @@ class ConsulClient:
                     return False
         return True
 
-    def register_consul(self, app, name, port):
+    def register_consul(self, app, name, port, tags):
         '''
         服务开启前,注册consul
         '''
-        id = self.register_service(name, port, [])
+        id = self.register_service(name, port, tags)
         app.config.update({'id': id})
 
     def deregister_service(self, app):

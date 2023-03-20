@@ -17,10 +17,12 @@ class ServerThread(threading.Thread):
             self.server_name = RouteInfo.get_message_broker_name()
             ip = RouteInfo.get_message_broker_ip()
             port = RouteInfo.get_message_broker_port()
+            tags = RouteInfo.get_message_broker_tags()
         else:
             self.server_name = RouteInfo.get_service_name()
             ip = RouteInfo.get_service_ip()
             port = RouteInfo.get_service_port()
+            tags = RouteInfo.get_service_tags()
             
         if self.safe_start:
             is_available = consul_client.check_port_available(self.server_name, ip, port)
@@ -46,7 +48,7 @@ class ServerThread(threading.Thread):
             upload_service_commands()
             route_registration(self._app)
 
-        consul_client.register_consul(self._app, self.server_name, port)
+        consul_client.register_consul(self._app, self.server_name, port, tags)
         self._server = make_server(host=ip, port=port, app=self._app)
         return True
 
