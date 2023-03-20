@@ -46,7 +46,7 @@ class Authority:
             # 获取该 QQ 号在该群组中的权限
             permission_level = cls._authorities.get(group_id, {}).get(qq_id, {}).get('PERMISSION', None)
             # 默认权限
-            if permission_level is None:
+            if permission_level is None and is_grooup_configured:
                 permission_level = cls._authorities.get(group_id, {}).get('DEFAULT', {}).get('PERMISSION', None)
         return permission_level
 
@@ -75,6 +75,9 @@ class Authority:
             return None
         # 只准内部调用，不对用户开放
         if permission_level_need == -3:
+            return None
+        # 该群没有被配置
+        if permission_level is None:
             return None
         # 最高权限
         if permission_level == -2:
