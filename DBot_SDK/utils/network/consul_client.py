@@ -81,6 +81,8 @@ class WatchKVThread(threading.Thread):
                     time.sleep(1)
 
             # 读取所有key的值，并将结果存储在字典中
+            if keys is None:
+                continue
             for key in keys:
                 while True:
                     try:
