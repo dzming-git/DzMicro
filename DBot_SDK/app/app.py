@@ -1,6 +1,7 @@
 # app.py
 from flask import Flask
 import threading
+import json
 from werkzeug.serving import make_server
 from DBot_SDK.api import route_registration, platform_route_registration
 from DBot_SDK.utils import consul_client
@@ -32,6 +33,8 @@ class ServerThread(threading.Thread):
         
         if ConfigFromUser.is_platform():
             platform_route_registration(self._app)
+            # 在consul的kv中配置本服务为平台服务
+            consul_client.update_key_value({f'config/platform': json.dumps(self.server_name)})
         else:
             route_registration(self._app)
 

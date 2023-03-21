@@ -7,7 +7,3 @@ service:
     - DBot
     - DBot_example
     - python
-
-# 平台程序配置
-platform:
-  name: DBot_platform

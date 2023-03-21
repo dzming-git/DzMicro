@@ -226,18 +226,6 @@ class ConsulClient:
         '''
         id = app.config['id']
         self.deregister_service(self, id)
-            
-    def discover_platform(self, service_name):
-        """
-        发现机器人平台程序
-        """
-        services = self.discover_services(service_name)
-        if services:
-            from DBot_SDK.conf import RouteInfo
-            platform = services[0]
-            RouteInfo.update_platform(ip=platform[0], port=platform[1])
-            return True
-        print('平台程序未开启')
-        return False
+
 
 consul_client = ConsulClient()

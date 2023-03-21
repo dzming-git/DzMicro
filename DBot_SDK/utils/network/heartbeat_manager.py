@@ -1,5 +1,6 @@
 import time
 import requests
+import json
 import threading
 
 class HeartbeatManager(threading.Thread):
@@ -26,24 +27,24 @@ class HeartbeatManager(threading.Thread):
         heartbeat_interval = self._interval * 0.9
         from DBot_SDK.conf.route_info import RouteInfo
         from DBot_SDK.utils.network import consul_client
+        
         while True:
-            platform_name = RouteInfo.get_platform_name()
-            ip, port = consul_client.discover_service(platform_name)
-            service_name = RouteInfo.get_service_name()
-            if ip and port and service_name:
-                url = f'http://{ip}:{port}/api/v1/heartbeat/{service_name}'
-                break
+            platform_name = json.loads(consul_client.download_key_value('config/platform', '""'))
+            platforms = consul_client.discover_services(platform_name)
+            for platform in platforms:
+                ip, port = platform
+                service_name = RouteInfo.get_service_name()
+                if ip and port and service_name:
+                    url = f'http://{ip}:{port}/api/v1/heartbeat/{service_name}'
+                try:
+                    # 向服务发送心跳请求
+                    response = requests.get(url)
 
-        while True:
-            try:
-                # 向服务发送心跳请求
-                response = requests.get(url)
-
-                # 检查响应的状态码
-                if response.status_code != 200:
-                    print('心跳请求失败：', response.status_code)
-            except:
-                print('心跳请求失败')
+                    # 检查响应的状态码
+                    if response.status_code != 200:
+                        print('心跳请求失败：', response.status_code)
+                except:
+                    print('心跳请求失败')
 
             time.sleep(heartbeat_interval)
 
