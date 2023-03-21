@@ -172,8 +172,11 @@ class ConsulClient:
         """
         #TODO 考虑添加查询表缓存，需要考虑查询表的刷新
         # 过滤掉不健康的服务
-        services = self.consul.health.service(service_name, passing=True)[1]
-        return [(service.get('Service', {}).get('Address'), service.get('Service', {}).get('Port')) for service in services]
+        try:
+            services = self.consul.health.service(service_name, passing=True)[1]
+            return [(service.get('Service', {}).get('Address'), service.get('Service', {}).get('Port')) for service in services]
+        except:
+            return []
 
     def discover_service(self, service_name):
         """
