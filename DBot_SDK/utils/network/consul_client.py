@@ -120,8 +120,6 @@ class ConsulClient:
     def __init__(self, host='localhost', port=8500, token=''):
         self.consul = consul.Consul(host=host, port=port)
         self.set_token(token)
-        
-
     
     def set_token(self, token):
         if token:
@@ -152,7 +150,7 @@ class ConsulClient:
                     print(f'上传字典{dict}失败，正在重试')
                     time.sleep(1)
 
-    def download_key_value(self, key: str):
+    def download_key_value(self, key: str, default=None):
         """
         从Consul下载指定的Key Value
         """
@@ -160,7 +158,7 @@ class ConsulClient:
         if data:
             return data['Value'].decode()
         else:
-            return None
+            return default
 
     def deregister_service(self, service_id):
         """
