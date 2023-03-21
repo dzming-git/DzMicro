@@ -163,7 +163,7 @@ class ConsulClient:
         """
         发现服务，返回所有设备信息
         """
-        #TODO 考虑添加查询表缓存，需要考虑查询表的刷新
+        #TODO 考虑添加查询表缓存，需要考虑查询表的刷新；刷新时机可以选择为WatchKVThread发现变动时
         # 过滤掉不健康的服务
         try:
             services = self.consul.health.service(service_name, passing=True)[1]
