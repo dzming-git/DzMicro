@@ -1,9 +1,8 @@
 # app.py
 from flask import Flask
-import time
 import threading
 from werkzeug.serving import make_server
-from DBot_SDK.api import route_registration, message_broker_route_registration
+from DBot_SDK.api import route_registration, platform_route_registration
 from DBot_SDK.utils import consul_client
 from DBot_SDK.conf import ConfigFromUser
 from DBot_SDK.utils.network import heartbeat_manager, upload_service_commands
@@ -13,16 +12,10 @@ class ServerThread(threading.Thread):
         self.safe_start = False
         self._server = None
         from DBot_SDK.conf import RouteInfo
-        if ConfigFromUser.is_message_broker():
-            self.server_name = RouteInfo.get_message_broker_name()
-            ip = RouteInfo.get_message_broker_ip()
-            port = RouteInfo.get_message_broker_port()
-            tags = RouteInfo.get_message_broker_tags()
-        else:
-            self.server_name = RouteInfo.get_service_name()
-            ip = RouteInfo.get_service_ip()
-            port = RouteInfo.get_service_port()
-            tags = RouteInfo.get_service_tags()
+        self.server_name = RouteInfo.get_service_name()
+        ip = RouteInfo.get_service_ip()
+        port = RouteInfo.get_service_port()
+        tags = RouteInfo.get_service_tags()
             
         if self.safe_start:
             is_available = consul_client.check_port_available(self.server_name, ip, port)
@@ -32,20 +25,14 @@ class ServerThread(threading.Thread):
         self._app = Flask(__name__)
 
         # 设置心跳管理器身份，并启动
-        heartbeat_manager.set_identity(is_message_broker=ConfigFromUser.is_message_broker())
+        heartbeat_manager.set_identity(is_platform=ConfigFromUser.is_platform())
         heartbeat_manager.start()
+
+        upload_service_commands()
         
-        if ConfigFromUser.is_message_broker():
-            message_broker_route_registration(self._app)
+        if ConfigFromUser.is_platform():
+            platform_route_registration(self._app)
         else:
-            success_connect = False
-            while True:
-                success_connect = consul_client.discover_message_broker(RouteInfo.get_message_broker_name())
-                if success_connect:
-                    break
-                print('连接DBot平台程序失败，正在重连')
-                time.sleep(1)
-            upload_service_commands()
             route_registration(self._app)
 
         consul_client.register_consul(self._app, self.server_name, port, tags)

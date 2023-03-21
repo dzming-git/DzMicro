@@ -2,10 +2,11 @@
 import requests
 from DBot_SDK.utils.urlencoding_message import urlencoding_message
 
-def send_message_to_message_broker(message, gid=None, qid=None):
+def send_message_to_platform(message, gid=None, qid=None):
     from DBot_SDK.conf.route_info import RouteInfo
-    ip = RouteInfo.get_message_broker_ip()
-    port = RouteInfo.get_message_broker_port()
+    from DBot_SDK.utils.network import consul_client
+    platform_name = RouteInfo.get_platform_name()
+    ip, port = consul_client.discover_service(platform_name)
     url = f'http://{ip}:{port}//api/v1/service_message'
     response = requests.post(url, json={'message': message, 'gid': gid, 'qid': qid})
     return response.json()

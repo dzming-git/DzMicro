@@ -1,17 +1,17 @@
 class ConfigFromUser:
-    _is_message_broker = False
+    _is_platform = False
 
     @classmethod
-    def is_message_broker(cls, confirm=None):
+    def is_platform(cls, confirm=None):
         '''
-        查询/确认是否是消息代理程序
+        查询/确认是否是平台程序程序
         confirm参数不输入时为查询
         '''
         if confirm:
-            cls._is_message_broker = True
+            cls._is_platform = True
             return True
         else:
-            return cls._is_message_broker
+            return cls._is_platform
     
     @classmethod
     def Authority_load_config(cls, config_path):

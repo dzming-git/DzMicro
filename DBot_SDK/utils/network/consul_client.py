@@ -172,6 +172,7 @@ class ConsulClient:
         """
         发现服务，返回所有设备信息
         """
+        #TODO 考虑添加查询表缓存，需要考虑查询表的刷新
         # 过滤掉不健康的服务
         services = self.consul.health.service(service_name, passing=True)[1]
         return [(service.get('Service', {}).get('Address'), service.get('Service', {}).get('Port')) for service in services]
@@ -225,17 +226,17 @@ class ConsulClient:
         id = app.config['id']
         self.deregister_service(self, id)
             
-    def discover_message_broker(self, service_name):
+    def discover_platform(self, service_name):
         """
-        发现机器人消息代理
+        发现机器人平台程序
         """
         services = self.discover_services(service_name)
         if services:
             from DBot_SDK.conf import RouteInfo
-            message_broker = services[0]
-            RouteInfo.update_message_broker(ip=message_broker[0], port=message_broker[1])
+            platform = services[0]
+            RouteInfo.update_platform(ip=platform[0], port=platform[1])
             return True
-        print('消息代理未开启')
+        print('平台程序未开启')
         return False
 
 consul_client = ConsulClient()

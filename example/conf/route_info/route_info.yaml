@@ -8,6 +8,6 @@ service:
     - DBot_example
     - python
 
-# 消息代理配置
-message_broker:
-  name: DBot_message_broker
+# 平台程序配置
+platform:
+  name: DBot_platform

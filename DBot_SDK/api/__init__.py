@@ -1,2 +1,2 @@
-from .routes import route_registration
-from .message_broker_routes import message_broker_route_registration
+from .server_routes import route_registration
+from .platform_routes import platform_route_registration

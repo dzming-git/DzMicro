@@ -8,10 +8,10 @@ class HeartbeatManager(threading.Thread):
         self._interval = interval
         self._services = {}
         self._timer = time.time()
-        self._is_message_broker = None
+        self._is_platform = None
     
-    def set_identity(self, is_message_broker=False):
-        self._is_message_broker = is_message_broker
+    def set_identity(self, is_platform=False):
+        self._is_platform = is_platform
 
     def register(self, service_name):
         if service_name not in self._services:
@@ -25,9 +25,10 @@ class HeartbeatManager(threading.Thread):
         # 定义心跳间隔时间，发送心跳的时间间隔比检测时间间隔少一点
         heartbeat_interval = self._interval * 0.9
         from DBot_SDK.conf.route_info import RouteInfo
+        from DBot_SDK.utils.network import consul_client
         while True:
-            ip = RouteInfo.get_message_broker_ip()
-            port = RouteInfo.get_message_broker_port()
+            platform_name = RouteInfo.get_platform_name()
+            ip, port = consul_client.discover_service(platform_name)
             service_name = RouteInfo.get_service_name()
             if ip and port and service_name:
                 url = f'http://{ip}:{port}/api/v1/heartbeat/{service_name}'
@@ -59,9 +60,9 @@ class HeartbeatManager(threading.Thread):
             pass
 
     def run(self):
-        while self._is_message_broker is None:
+        while self._is_platform is None:
             time.sleep(1)
-        if self._is_message_broker:
+        if self._is_platform:
             while True:
                 if (time.time() - self._timer) > self._interval:
                     self.check()

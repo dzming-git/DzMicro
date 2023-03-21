@@ -1,8 +1,8 @@
-# message_broker_routes.py
+# platform_routes.py
 from flask import request, jsonify
 from DBot_SDK.utils.network import heartbeat_manager
 
-def message_broker_route_registration(app):
+def platform_route_registration(app):
     @app.route('/', methods=['POST'])
     def handle_message():
         '''

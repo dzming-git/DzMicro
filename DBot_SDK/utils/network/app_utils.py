@@ -4,7 +4,6 @@ import socket
 from DBot_SDK.utils.judge_same_listener import judge_same_listener
 
 def upload_service_commands():
-    # 注册支持的指令到消息代理程序
     from DBot_SDK.conf import RouteInfo
     from DBot_SDK.app import FuncDict
     service_name = RouteInfo.get_service_name()
