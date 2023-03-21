@@ -75,26 +75,23 @@ class WatchKVThread(threading.Thread):
             while True:
                 try:
                     # 获取指定文件夹下的所有key
-                    keys = self._c.kv.get('DBot_', keys=True)[1]
+                    #TODO 这个前缀也可以在kv中配置
+                    keys = consul_client.download_key_value('DBot_', [], True)
                     break
                 except:
                     print('下载字典失败，正在重试')
                     time.sleep(1)
 
             # 读取所有key的值，并将结果存储在字典中
-            if keys is None:
-                continue
             for key in keys:
                 while True:
                     try:
-                        data = self._c.kv.get(key)[1].get('Value', '')
+                        json_data = consul_client.download_key_value(key, '')
+                        new_kv[key] = json_data
                         break
                     except:
                         print('下载字典失败，正在重试')
                         time.sleep(1)
-                json_data = self.decode_data(data)
-                if json_data is not None:
-                    new_kv[key] = json_data
             added, deleted, modified = compare_dicts(self._kv, new_kv)
             if added:
                 self.on_add_kv(added)
@@ -104,17 +101,7 @@ class WatchKVThread(threading.Thread):
                 self.on_modified_kv(modified)
 
             self._kv = new_kv
-            time.sleep(0.1)
-
-    def decode_data(self, data):
-        if data is None:
-            return None
-        elif type(data) is bytes:
-            decoded_data = data.decode('utf-8')
-        elif type(data) is str:
-            decoded_data = data
-        json_data = json.loads(decoded_data)
-        return json_data
+            time.sleep(1)
 
 class ConsulClient:
     def __init__(self, host='localhost', port=8500, token=''):
@@ -151,15 +138,18 @@ class ConsulClient:
                     print(f'上传字典{dict}失败，正在重试')
                     time.sleep(1)
 
-    def download_key_value(self, key: str, default=None):
+    def download_key_value(self, key: str, default=None, keys=False):
         """
         从Consul下载指定的Key Value
         """
-        index, data = self.consul.kv.get(key)
+        index, data = self.consul.kv.get(key, keys=keys)
         if data:
-            value_json = data['Value'].decode('utf-8')
-            value = json.loads(value_json)
-            return value
+            if keys:
+                return data
+            else:
+                value_json = data['Value'].decode('utf-8')
+                value = json.loads(value_json)
+                return value
         else:
             return default
 
