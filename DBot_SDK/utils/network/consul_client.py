@@ -144,7 +144,8 @@ class ConsulClient:
         for key, value in dict_to_upload.items():
             while True:
                 try:
-                    self.consul.kv.put(key, str(value).encode('utf-8'))
+                    value_json = json.dumps(value)
+                    self.consul.kv.put(key, value_json.encode('utf-8'))
                     break
                 except consul.base.ConsulException:
                     print(f'上传字典{dict}失败，正在重试')
@@ -156,7 +157,9 @@ class ConsulClient:
         """
         index, data = self.consul.kv.get(key)
         if data:
-            return data['Value'].decode()
+            value_json = data['Value'].decode('utf-8')
+            value = json.loads(value_json)
+            return value
         else:
             return default
 

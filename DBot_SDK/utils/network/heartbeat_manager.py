@@ -1,6 +1,5 @@
 import time
 import requests
-import json
 import threading
 
 class HeartbeatManager(threading.Thread):
@@ -29,7 +28,7 @@ class HeartbeatManager(threading.Thread):
         from DBot_SDK.utils.network import consul_client
         
         while True:
-            platform_name = json.loads(consul_client.download_key_value('config/platform', '""'))
+            platform_name = consul_client.download_key_value('config/platform', '""')
             platforms = consul_client.discover_services(platform_name)
             for platform in platforms:
                 ip, port = platform

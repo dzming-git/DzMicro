@@ -9,31 +9,23 @@ def upload_service_commands():
     service_name = RouteInfo.get_service_name()
     keyword = FuncDict.get_keyword()
     commands = FuncDict.get_commands()
-    k = f'{service_name}/config'
-    v = json.dumps({
-        'keyword': keyword,
-        'commands': commands
-    })
     from DBot_SDK.utils import consul_client
-    consul_client.update_key_value({k: v})
+    consul_client.update_key_value({f'{service_name}/config': {'keyword': keyword,'commands': commands}})
 
 def request_listen(request_command, command, gid, qid, should_listen):
     from DBot_SDK.conf import RouteInfo
     from DBot_SDK.app import FuncDict
     from DBot_SDK.utils.network import consul_client
-    import json
     service_name = RouteInfo.get_service_name()
     # ip需要获取IPV4，配置中是0.0.0.0，不能从配置文件中读取
     hostname = socket.gethostname()
     ip = socket.gethostbyname(hostname)
     port = RouteInfo.get_service_port()
     keyword = FuncDict.get_keyword()
-    k = f'{service_name}/listeners'
-    json_str = consul_client.download_key_value(k)
-    if json_str is None:
+    consul_listeners = consul_client.download_key_value(keyword)
+    if consul_listeners is None:
         consul_listeners = []
     else:
-        consul_listeners = json.loads(json_str)  # List[Dict]
         consul_listeners = [] if consul_listeners is None else consul_listeners
     # 删除同一个监听配置，再添加新的配置
     for i, consul_listener in enumerate(consul_listeners):
@@ -55,8 +47,7 @@ def request_listen(request_command, command, gid, qid, should_listen):
         'gid': gid,
         'qid': qid,
         'should_listen': should_listen})
-    v = json.dumps(consul_listeners)
-    consul_client.update_key_value({k: v})
+    consul_client.update_key_value({f'{service_name}/listeners': consul_listeners})
 
 
 def publish_task(ip, port, json):
