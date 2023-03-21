@@ -6,7 +6,7 @@ def send_message_to_platform(message, gid=None, qid=None):
     from DBot_SDK.utils.network import consul_client
     platform_name = consul_client.download_key_value('config/platform', '""')
     ip, port = consul_client.discover_service(platform_name)
-    url = f'http://{ip}:{port}//api/v1/service_message'
+    url = f'http://{ip}:{port}/api/v1/service_message'
     response = requests.post(url, json={'message': message, 'gid': gid, 'qid': qid})
     return response.json()
 
