@@ -69,9 +69,9 @@ class MessageHandlerThread(threading.Thread):
         include_keyword = False
         correct_keyword = False
         
-        # args0表示指令相应， args表示监听的转发
+        # args0表示指令相应， args_listener表示监听的转发
         arg0 = None
-        args = []
+        args_listener = []
         #TODO 含有关键词的不按照监听的方式转发，未来可能有监听指令的功能，待完善
         if keyword:
             include_keyword = True
@@ -117,12 +117,12 @@ class MessageHandlerThread(threading.Thread):
                 service_info = {'service_name': listener_service_name, 'service_address': service_address}
                 send_json = {'command': listener_command, 'args': [message], 'gid': gid, 'qid': qid, 'is_user_call': is_user_call}
                 if gid is None and qid == listener_qid:  # 私聊
-                    args.append((service_info, send_json))
+                    args_listener.append((service_info, send_json))
                 elif gid == listener_gid:  # 群聊
-                    args.append((service_info, send_json))
+                    args_listener.append((service_info, send_json))
         if arg0:
             self.add_message_queue(*arg0)
-        for arg in args:
+        for arg in args_listener:
             self.add_message_queue(*arg)
 
 message_handler_thread = MessageHandlerThread()
