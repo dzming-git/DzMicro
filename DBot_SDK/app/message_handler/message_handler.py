@@ -4,8 +4,10 @@ import threading
 from DBot_SDK.app import BotCommands, keyword_error_handler, command_error_handler, permission_denied, service_offline, connect_error_handler
 from DBot_SDK.utils.network import publish_task, heartbeat_manager, consul_client
 from DBot_SDK.utils import listener_manager, judge_same_listener
+from DBot_SDK.conf import RouteInfo
 from queue import Queue
 import time
+import socket
 
 class MessageHandlerThread(threading.Thread):
     def __init__(self):
@@ -40,11 +42,14 @@ class MessageHandlerThread(threading.Thread):
         if service:
             service_ip = service[0]
             service_port = service[1]
+            platform_ip = socket.gethostbyname(socket.gethostname())
+            platform_port = RouteInfo.get_service_port()
+            platform = (platform_ip, platform_port) if platform_ip and platform_port else None
             message_json = {
                 'ip': service_ip,
                 'port': service_port,
                 'service_name': service_name,
-                'json': {'command': command, 'args': args, 'gid': gid, 'qid': qid, 'is_user_call': is_user_call}
+                'json': {'platform': platform, 'command': command, 'args': args, 'gid': gid, 'qid': qid, 'is_user_call': is_user_call}
             }
             self.message_queue.put(message_json)
 

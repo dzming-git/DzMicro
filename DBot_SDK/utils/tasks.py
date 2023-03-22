@@ -21,10 +21,7 @@ class TaskThread(threading.Thread):
     def exe_task(self, task):
         command = task['command']
         func = FuncDict.get_func(command)
-        gid = task['gid']
-        qid = task['qid']
-        args = task['args']
-        func(gid=gid, qid=qid, args=args)
+        func(task)
 
     def run(self):
         while not self._stop:
