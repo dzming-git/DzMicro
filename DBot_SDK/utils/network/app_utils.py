@@ -1,6 +1,7 @@
 import requests
 import json
 import socket
+from typing import Dict
 from DBot_SDK.utils.judge_same_listener import judge_same_listener
 
 def upload_service_commands():
@@ -50,9 +51,12 @@ def request_listen(request_command, command, gid, qid, should_listen):
     consul_client.update_key_value({f'{service_name}/listeners': consul_listeners})
 
 
-def publish_task(ip, port, json):
-    print(f'{ip} {port} {json}')
-    url = f'http://{ip}:{port}/api/v1/receive_command'
-    response = requests.post(url, json=json).json()
+def publish_task(message: Dict):
+    print(f'publish_task\n{message}\n')
+    service_address = message.get('service_address', (None, None))
+    service_ip, service_port = service_address
+    send_json = message.get('send_json', {})
+    url = f'http://{service_ip}:{service_port}/api/v1/receive_command'
+    response = requests.post(url, json=send_json).json()
     authorized = response.get('permission', None)
     return authorized

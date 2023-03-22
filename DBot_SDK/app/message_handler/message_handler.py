@@ -19,17 +19,15 @@ class MessageHandlerThread(threading.Thread):
     def run(self):
         while not self.stop:
             message = self.message_queue.get(block=True)
-            ip = message.get('ip')
-            port = message.get('port')
             service_name = message.get('service_name')
-            json = message.get('json', {})
-            gid = json.get('gid')
-            qid = json.get('qid')
+            send_json = message.get('send_json', {})
+            gid = send_json.get('gid')
+            qid = send_json.get('qid')
             if heartbeat_manager.check_online(service_name) is False:
                 service_offline(gid, qid)
             else:
                 try:
-                    authorized = publish_task(ip, port, json)
+                    authorized = publish_task(message)
                     # None不处理，False告知权限不足
                     if authorized is False:
                         permission_denied(gid=gid, qid=qid)
@@ -37,19 +35,14 @@ class MessageHandlerThread(threading.Thread):
                 except:
                     connect_error_handler(gid, qid)
     
-    def add_message_queue(self, service_name, command, args, gid, qid, is_user_call, service=None):
-        # 发送给监听者会传入service参数
-        if service:
-            service_ip = service[0]
-            service_port = service[1]
+    def add_message_queue(self, service_info, send_json):
+        if service_info:
             platform_ip = socket.gethostbyname(socket.gethostname())
             platform_port = RouteInfo.get_service_port()
-            platform = (platform_ip, platform_port) if platform_ip and platform_port else None
             message_json = {
-                'ip': service_ip,
-                'port': service_port,
-                'service_name': service_name,
-                'json': {'platform': platform, 'command': command, 'args': args, 'gid': gid, 'qid': qid, 'is_user_call': is_user_call}
+                **service_info,
+                'platform_address': (platform_ip, platform_port) if platform_ip and platform_port else None,
+                'send_json': send_json
             }
             self.message_queue.put(message_json)
 
@@ -75,10 +68,10 @@ class MessageHandlerThread(threading.Thread):
 
         include_keyword = False
         correct_keyword = False
-
-        # args0表示指令相应， args1表示监听的转发
+        
+        # args0表示指令相应， args表示监听的转发
         arg0 = None
-        args1 = []
+        args = []
         #TODO 含有关键词的不按照监听的方式转发，未来可能有监听指令的功能，待完善
         if keyword:
             include_keyword = True
@@ -91,9 +84,11 @@ class MessageHandlerThread(threading.Thread):
                     command_error_handler(gid, qid)
                 service_name = BotCommands.get_service_name(keyword)
                 is_user_call = True
-                server = consul_client.discover_service(service_name)
-                if server is not None:
-                    arg0 = (service_name, command, args, gid, qid, is_user_call, server)
+                service_address = consul_client.discover_service(service_name)
+                if service_address is not None:
+                    service_info = {'service_name': service_name, 'service_address': service_address}
+                    send_json = {'command': command, 'args': args, 'gid': gid, 'qid': qid, 'is_user_call': is_user_call}
+                    arg0 = (service_info, send_json)
                 else:
                     connect_error_handler(gid, qid)
 
@@ -106,7 +101,7 @@ class MessageHandlerThread(threading.Thread):
             listener_gid = listener.get('gid')
             listener_qid = listener.get('qid')
             is_user_call = False
-            server = listener_ip, listener_port
+            service_address = listener_ip, listener_port
             if include_keyword and correct_keyword:
                 if judge_same_listener(listener=listener,
                                        service_name=service_name,
@@ -114,18 +109,20 @@ class MessageHandlerThread(threading.Thread):
                                        command=listener.get('command'),  # 凑条件通过判断
                                        gid=gid,
                                        qid=qid):
-                    if command == listener.get('request_command'):  # 接收到的指令是申请监听的指令
-                        service_name, command, args, gid, qid, is_user_call, server = arg0
-                        server = listener_ip, listener_port
-                        arg0 = (service_name, command, args, gid, qid, is_user_call, server)
-            elif gid is None:  # 私聊
-                if qid == listener_qid:
-                    args1.append((listener_service_name, listener_command, [message], gid, qid, is_user_call, server))
-            elif gid == listener_gid:  # 群聊
-                args1.append((listener_service_name, listener_command, [message], gid, qid, is_user_call, server))
+                    if command == listener.get('request_command'):  # 接收到的指令与申请监听的指令是同一个指令
+                        service_info, send_json = arg0
+                        service_info['service_address'] = (listener_ip, listener_port)  # 转发给处理监听的服务
+                        arg0 = (service_info, send_json)
+            else:
+                service_info = {'service_name': listener_service_name, 'service_address': service_address}
+                send_json = {'command': listener_command, 'args': [message], 'gid': gid, 'qid': qid, 'is_user_call': is_user_call}
+                if gid is None and qid == listener_qid:  # 私聊
+                    args.append(service_info, send_json)
+                elif gid == listener_gid:  # 群聊
+                    args.append(service_info, send_json)
         if arg0:
             self.add_message_queue(*arg0)
-        for arg in args1:
+        for arg in args:
             self.add_message_queue(*arg)
 
 message_handler_thread = MessageHandlerThread()
