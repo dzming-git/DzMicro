@@ -117,9 +117,9 @@ class MessageHandlerThread(threading.Thread):
                 service_info = {'service_name': listener_service_name, 'service_address': service_address}
                 send_json = {'command': listener_command, 'args': [message], 'gid': gid, 'qid': qid, 'is_user_call': is_user_call}
                 if gid is None and qid == listener_qid:  # 私聊
-                    args.append(service_info, send_json)
+                    args.append((service_info, send_json))
                 elif gid == listener_gid:  # 群聊
-                    args.append(service_info, send_json)
+                    args.append((service_info, send_json))
         if arg0:
             self.add_message_queue(*arg0)
         for arg in args:
