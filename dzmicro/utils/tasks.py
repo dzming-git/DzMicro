@@ -1,11 +1,7 @@
 # task.py
 import threading
 from queue import Queue
-<<<<<<<< HEAD:dzmicro/utils/tasks.py
 from dzmicro.app import FuncDict
-========
-from dbot.app import FuncDict
->>>>>>>> 5db5c8d65bf9963ee23a28ac253e0f4045b1a5f0:example/dbot/utils/tasks.py
 
 class TaskThread(threading.Thread):
     def __init__(self):

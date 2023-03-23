@@ -1,11 +1,7 @@
 # route_info.py
 import yaml
 import copy
-<<<<<<<< HEAD:dzmicro/conf/route_info/route_info.py
 from dzmicro.utils import WatchDogThread, compare_dicts
-========
-from dbot.utils import WatchDogThread, compare_dicts
->>>>>>>> 5db5c8d65bf9963ee23a28ac253e0f4045b1a5f0:example/dbot/conf/route_info/route_info.py
 
 class RouteInfo:
     _config_path = ''
@@ -30,11 +26,7 @@ class RouteInfo:
         config_new = copy.deepcopy(cls._config)
         added_dict, deleted_dict, modified_dict = compare_dicts(config_old, config_new)
         if added_dict or deleted_dict or modified_dict:
-<<<<<<<< HEAD:dzmicro/conf/route_info/route_info.py
             from dzmicro.app import server_thread
-========
-            from dbot.app import server_thread
->>>>>>>> 5db5c8d65bf9963ee23a28ac253e0f4045b1a5f0:example/dbot/conf/route_info/route_info.py
             server_thread.restart()
 
     # 服务程序配置方法

@@ -1,17 +1,10 @@
 # message_handler.py
 import re
 import threading
-<<<<<<<< HEAD:dzmicro/app/message_handler/message_handler.py
 from dzmicro.app import BotCommands, keyword_error_handler, command_error_handler, permission_denied, service_offline, connect_error_handler
 from dzmicro.utils.network import publish_task, heartbeat_manager, consul_client
 from dzmicro.utils import listener_manager, judge_same_listener
 from dzmicro.conf import RouteInfo
-========
-from dbot.app import BotCommands, keyword_error_handler, command_error_handler, permission_denied, service_offline, connect_error_handler
-from dbot.utils.network import publish_task, heartbeat_manager, consul_client
-from dbot.utils import listener_manager, judge_same_listener
-from dbot.conf import RouteInfo
->>>>>>>> 5db5c8d65bf9963ee23a28ac253e0f4045b1a5f0:example/dbot/app/message_handler/message_handler.py
 from queue import Queue
 import time
 import socket

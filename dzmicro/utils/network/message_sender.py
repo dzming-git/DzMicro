@@ -1,16 +1,9 @@
 # message_sender.py
 import requests
-<<<<<<<< HEAD:dzmicro/utils/network/message_sender.py
 from dzmicro.utils.urlencoding_message import urlencoding_message
 
 def send_message_to_platform(message, source_id, platform=None):
     from dzmicro.utils.network import consul_client
-========
-from dbot.utils.urlencoding_message import urlencoding_message
-
-def send_message_to_platform(message, source_id, platform=None):
-    from dbot.utils.network import consul_client
->>>>>>>> 5db5c8d65bf9963ee23a28ac253e0f4045b1a5f0:example/dbot/utils/network/message_sender.py
     platform_name = consul_client.download_key_value('config/platform', '""')
     if platform is None:
         platform = consul_client.discover_service(platform_name)

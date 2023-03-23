@@ -1,9 +1,5 @@
 import yaml
-<<<<<<<< HEAD:dzmicro/conf/consul_info/consul_info.py
 from dzmicro.utils import WatchDogThread, consul_client
-========
-from dbot.utils import WatchDogThread, consul_client
->>>>>>>> 5db5c8d65bf9963ee23a28ac253e0f4045b1a5f0:example/dbot/conf/consul_info/consul_info.py
 
 class ConsulInfo:
     _config_path = ''

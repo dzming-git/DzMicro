@@ -1,15 +1,9 @@
 from flask import request
 
 def route_registration(app):
-<<<<<<<< HEAD:dzmicro/api/server_routes.py
     from dzmicro.conf import RouteInfo
     from dzmicro.conf import Authority
     from dzmicro.utils import task_thread
-========
-    from dbot.conf import RouteInfo
-    from dbot.conf import Authority
-    from dbot.utils import task_thread
->>>>>>>> 5db5c8d65bf9963ee23a28ac253e0f4045b1a5f0:example/dbot/api/server_routes.py
     @app.route(f'/api/v1/receive_command', methods=['POST'])
     def receive_command():
         data = request.get_json()

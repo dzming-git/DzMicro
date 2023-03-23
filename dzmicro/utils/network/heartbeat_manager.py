@@ -24,13 +24,8 @@ class HeartbeatManager(threading.Thread):
     def heartbeat(self):
         # 定义心跳间隔时间，发送心跳的时间间隔比检测时间间隔少一点
         heartbeat_interval = self._interval * 0.9
-<<<<<<<< HEAD:dzmicro/utils/network/heartbeat_manager.py
         from dzmicro.conf.route_info import RouteInfo
         from dzmicro.utils.network import consul_client
-========
-        from dbot.conf.route_info import RouteInfo
-        from dbot.utils.network import consul_client
->>>>>>>> 5db5c8d65bf9963ee23a28ac253e0f4045b1a5f0:example/dbot/utils/network/heartbeat_manager.py
         
         while True:
             platform_name = consul_client.download_key_value('config/platform', '""')

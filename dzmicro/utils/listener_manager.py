@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:dzmicro/utils/listener_manager.py
 from dzmicro.utils.judge_same_listener import judge_same_listener
-========
-from dbot.utils.judge_same_listener import judge_same_listener
->>>>>>>> 5db5c8d65bf9963ee23a28ac253e0f4045b1a5f0:example/dbot/utils/listener_manager.py
 
 class ListenerManager:
     '''

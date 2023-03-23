@@ -7,11 +7,7 @@ import json
 import re
 import random
 from typing import Dict
-<<<<<<<< HEAD:dzmicro/utils/network/consul_client.py
 from dzmicro.utils import compare_dicts
-========
-from dbot.utils import compare_dicts
->>>>>>>> 5db5c8d65bf9963ee23a28ac253e0f4045b1a5f0:example/dbot/utils/network/consul_client.py
 
 class WatchKVThread(threading.Thread):
     def __init__(self, c):
@@ -24,11 +20,7 @@ class WatchKVThread(threading.Thread):
         self._stop = True
 
     def on_config_changed(self, config_dict: Dict, change):
-<<<<<<<< HEAD:dzmicro/utils/network/consul_client.py
         from dzmicro.app import BotCommands
-========
-        from dbot.app import BotCommands
->>>>>>>> 5db5c8d65bf9963ee23a28ac253e0f4045b1a5f0:example/dbot/utils/network/consul_client.py
         if change == 'add':
             pattern = r"DBot_(\w+)/config"
             for key, value in config_dict.items():
@@ -43,11 +35,7 @@ class WatchKVThread(threading.Thread):
                             BotCommands.add_commands(keyword, command)
 
     def on_listener_changed(self, listener_dict: Dict, change):
-<<<<<<<< HEAD:dzmicro/utils/network/consul_client.py
         from dzmicro.utils import listener_manager
-========
-        from dbot.utils import listener_manager
->>>>>>>> 5db5c8d65bf9963ee23a28ac253e0f4045b1a5f0:example/dbot/utils/network/consul_client.py
         pattern = r"DBot_(\w+)/listeners"
         for key, value in listener_dict.items():
             match = re.search(pattern, key)

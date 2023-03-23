@@ -1,9 +1,5 @@
 import yaml
-<<<<<<<< HEAD:dzmicro/conf/authority/authority.py
 from dzmicro.utils import WatchDogThread
-========
-from dbot.utils import WatchDogThread
->>>>>>>> 5db5c8d65bf9963ee23a28ac253e0f4045b1a5f0:example/dbot/conf/authority/authority.py
 
 class Authority:
     _config_path = ''
@@ -82,11 +78,7 @@ class Authority:
         -1 禁止使用一切指令
         '''
         permission_level = cls.get_permission_level(source_id)
-<<<<<<<< HEAD:dzmicro/conf/authority/authority.py
         from dzmicro.app import FuncDict
-========
-        from dbot.app import FuncDict
->>>>>>>> 5db5c8d65bf9963ee23a28ac253e0f4045b1a5f0:example/dbot/conf/authority/authority.py
         permission_need = FuncDict.get_permission(command)
         permission_level_need = cls._permission_level.get(permission_need, None)
         # func_dict中权限配置错误
