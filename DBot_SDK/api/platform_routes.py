@@ -12,20 +12,13 @@ def platform_route_registration(app):
         # 获取消息体
         message = request.json
         print(message)
-        # 获取消息类型
-        message_type = message.get('message_type')
-        # 获取发送者id
-        sender_id = message.get('sender', {}).get('user_id')
-        # 获取群id
-        group_id = message.get('group_id')
+        # 获取source_id
+        qid = message.get('sender', {}).get('user_id')
+        gid = message.get('group_id')
+        source_id = [gid, qid]
         # 获取原始消息内容
         raw_message = message.get('raw_message')
-        # 处理私聊消息
-        if message_type == 'private':
-            message_handler_thread.message_handler(raw_message, qid=sender_id)
-        # 处理群聊消息
-        elif message_type == 'group':
-            message_handler_thread.message_handler(raw_message, gid=group_id, qid=sender_id)
+        message_handler_thread.message_handler(raw_message, source_id)
         # 返回响应
         return 'OK'
     
@@ -36,10 +29,9 @@ def platform_route_registration(app):
         '''
         data = request.get_json()
         message = data.get('message')
-        gid = data.get('gid')
-        qid = data.get('qid')
-        from DBot_SDK.utils import send_message_to_cqhttp
-        send_message_to_cqhttp(message, gid, qid)
+        source_id = data.get('source_id')
+        from DBot_SDK.utils import send_message_to_source
+        send_message_to_source(message, source_id)
         return jsonify({'message': 'OK'}), 200
 
     # 定义心跳路径

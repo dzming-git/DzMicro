@@ -1,8 +1,9 @@
 # permission_denied_handler.py
-from DBot_SDK.utils import send_message_to_cqhttp
+from DBot_SDK.utils import send_message_to_source
 
-def permission_denied(gid=None, qid=None):
+def permission_denied(source_id):
+    gid, qid = source_id
     message = '权限不足'
     if gid:
         message = f'[CQ:at,qq={qid}]' + message
-    send_message_to_cqhttp(message, gid, qid)
+    send_message_to_source(message, source_id)

@@ -6,8 +6,7 @@ class ListenerManager:
         {
             'service_name':
             'command':
-            'gid':
-            'qid':
+            'source_id':
         }
     ]
 
@@ -23,12 +22,7 @@ class ListenerManager:
             should_add = True
             should_rm = False
             for i, listener in enumerate(self._listeners):
-                if judge_same_listener(listener=listener,
-                                    service_name=consul_listener.get('service_name'),
-                                    keyword=consul_listener.get('keyword'),
-                                    command=consul_listener.get('command'),
-                                    gid=consul_listener.get('gid'),
-                                    qid=consul_listener.get('qid')):
+                if judge_same_listener(listener, consul_listener):
                         should_add = not is_rm
                         should_rm = is_rm
             if should_add:

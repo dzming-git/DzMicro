@@ -26,28 +26,30 @@ class Authority:
 
 
     @classmethod
-    def get_permission_level(cls, group_id, qq_id):
+    def get_permission_level(cls, source_id):
+        #TODO 同一giq qid
+        gid, qid = source_id
         permission_level = 0
         if not cls._authorities:
             cls.load_config(cls._config_path)
-        if group_id == None:
-            group_id = 'PRIVATE'  # 私聊当作特殊的群聊处理
-        is_grooup_configured = group_id in cls._authorities
-        is_global_permission = qq_id in cls._authorities.get('GLOBAL', {})
+        if gid == None:
+            gid = 'PRIVATE'  # 私聊当作特殊的群聊处理
+        is_grooup_configured = gid in cls._authorities
+        is_global_permission = qid in cls._authorities.get('GLOBAL', {})
         # 该qq有全局权限
         if is_global_permission:
             # 全局权限优先 或 该群被配置
             if cls._global_permission_first or is_grooup_configured:
-                permission_level = cls._authorities.get('GLOBAL', {}).get(qq_id, {}).get('PERMISSION', 'NONE')
+                permission_level = cls._authorities.get('GLOBAL', {}).get(qid, {}).get('PERMISSION', 'NONE')
             else:
                 permission_level = 0
         # 该qq无全局权限
         else:
             # 获取该 QQ 号在该群组中的权限
-            permission_level = cls._authorities.get(group_id, {}).get(qq_id, {}).get('PERMISSION', None)
+            permission_level = cls._authorities.get(gid, {}).get(qid, {}).get('PERMISSION', None)
             # 默认权限
             if permission_level is None and is_grooup_configured:
-                permission_level = cls._authorities.get(group_id, {}).get('DEFAULT', {}).get('PERMISSION', None)
+                permission_level = cls._authorities.get(gid, {}).get('DEFAULT', {}).get('PERMISSION', None)
         return permission_level
 
     @classmethod
@@ -58,14 +60,14 @@ class Authority:
         return None
 
     @classmethod
-    def check_command_permission(cls, command, group_id, qq_id):
+    def check_command_permission(cls, command, source_id):
         '''
         特殊权限：
         -3 只准内部调用，不对用户开放
         -2 最高权限，可以调用一切外部调用的指令
         -1 禁止使用一切指令
         '''
-        permission_level = cls.get_permission_level(group_id, qq_id)
+        permission_level = cls.get_permission_level(source_id)
         from DBot_SDK.app import FuncDict
         permission_need = FuncDict.get_permission(command)
         permission_level_need = cls._permission_level.get(permission_need, None)

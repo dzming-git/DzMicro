@@ -10,12 +10,11 @@ class TaskThread(threading.Thread):
         self._stop = False
         super().start()
 
-    def add_task(self, command, args, gid=None, qid=None):
+    def add_task(self, command, args, source_id):
         self._task_queue.put({
             'command': command,
             'args': args,
-            'gid': gid,
-            'qid': qid
+            'source_id': source_id
         })
     
     def exe_task(self, task):
