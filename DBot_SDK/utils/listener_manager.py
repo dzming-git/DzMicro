@@ -40,18 +40,7 @@ class ListenerManager:
         '''
         获取目前监听状态的服务和申请监听的指令
         '''
-        # 创建一个空列表，用于存储具有 should_listen 属性且其值为 True 的对象
-        should_listen_listeners = []
-
-        # 遍历 self._listeners 列表中的每个元素
-        for listener in self._listeners:
-            # 检查该元素是否具有 should_listen 属性，并且其值为 True
-            if listener.get('should_listen', False):
-                # 如果满足条件，则将该元素添加到 should_listen_listeners 列表中
-                should_listen_listeners.append(listener)
-
-        # 返回 should_listen_listeners 列表
-        return should_listen_listeners
+        return self._listeners
 
 
 listener_manager = ListenerManager()

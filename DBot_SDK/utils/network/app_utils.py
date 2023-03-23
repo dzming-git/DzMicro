@@ -23,11 +23,8 @@ def request_listen(request_command, command, gid, qid, should_listen):
     ip = socket.gethostbyname(hostname)
     port = RouteInfo.get_service_port()
     keyword = FuncDict.get_keyword()
-    consul_listeners = consul_client.download_key_value(keyword)
-    if consul_listeners is None:
-        consul_listeners = []
-    else:
-        consul_listeners = [] if consul_listeners is None else consul_listeners
+    consul_listeners = consul_client.download_key_value(f'{service_name}/listeners')
+    consul_listeners = [] if consul_listeners is None else consul_listeners
     # 删除同一个监听配置，再添加新的配置
     for i, consul_listener in enumerate(consul_listeners):
         if judge_same_listener(listener=consul_listener,
@@ -38,16 +35,16 @@ def request_listen(request_command, command, gid, qid, should_listen):
                             qid=qid):
             consul_listeners.pop(i)
             break
-    consul_listeners.append({
-        'service_name': service_name, 
-        'keyword': keyword,
-        'request_command': request_command,
-        'command': command,
-        'ip': ip, 
-        'port': port,
-        'gid': gid,
-        'qid': qid,
-        'should_listen': should_listen})
+    if should_listen:
+        consul_listeners.append({
+            'service_name': service_name, 
+            'keyword': keyword,
+            'request_command': request_command,
+            'command': command,
+            'ip': ip, 
+            'port': port,
+            'gid': gid,
+            'qid': qid})
     consul_client.update_key_value({f'{service_name}/listeners': consul_listeners})
 
 
