@@ -8,6 +8,7 @@ from dzmicro.conf import RouteInfo
 from queue import Queue
 import time
 import socket
+from typing import List
 
 class MessageHandlerThread(threading.Thread):
     def __init__(self):
@@ -45,7 +46,7 @@ class MessageHandlerThread(threading.Thread):
             }
             self.message_queue.put(message_json)
 
-    def message_handler(self, message: str, source_id):
+    def message_handler(self, message: str, source_id: List):
         def message_split(message):
             pattern = r'(#\w+)\s*(.*)'
             match = re.match(pattern, message.strip())
