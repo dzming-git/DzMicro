@@ -27,29 +27,39 @@ class Authority:
 
     @classmethod
     def get_permission_level(cls, source_id):
-        #TODO 同一giq qid
-        gid, qid = source_id
-        permission_level = 0
-        if not cls._authorities:
-            cls.load_config(cls._config_path)
-        if gid == None:
-            gid = 'PRIVATE'  # 私聊当作特殊的群聊处理
-        is_grooup_configured = gid in cls._authorities
-        is_global_permission = qid in cls._authorities.get('GLOBAL', {})
-        # 该qq有全局权限
-        if is_global_permission:
-            # 全局权限优先 或 该群被配置
-            if cls._global_permission_first or is_grooup_configured:
-                permission_level = cls._authorities.get('GLOBAL', {}).get(qid, {}).get('PERMISSION', 'NONE')
-            else:
-                permission_level = 0
-        # 该qq无全局权限
-        else:
-            # 获取该 QQ 号在该群组中的权限
-            permission_level = cls._authorities.get(gid, {}).get(qid, {}).get('PERMISSION', None)
-            # 默认权限
-            if permission_level is None and is_grooup_configured:
-                permission_level = cls._authorities.get(gid, {}).get('DEFAULT', {}).get('PERMISSION', None)
+        source_id = [str(x_id) for x_id in source_id]
+        # 回溯方法调取权限
+        search_path_stack = []
+        authorities = cls._authorities
+        id_index = 0
+        max_index = len(source_id)
+        recall_times = 0
+        permission_level = None
+        while True:
+            x_id = source_id[id_index]
+            if 'GLOBAL' in authorities and recall_times <= 0:
+                if not cls._global_permission_first and x_id not in authorities:
+                    # 如果x_id没查询到，并且global优先为设定，则不使用global权限
+                    # global优先未设定时，只有参与配置的id可以使用global权限
+                    break
+                search_path_stack.append([id_index, authorities, recall_times])  # 记录回溯节点
+                authorities = authorities.get('GLOBAL')
+            elif x_id in authorities and recall_times <= 1:
+                search_path_stack.append([id_index, authorities, recall_times])  # 记录回溯节点
+                authorities = authorities.get(x_id)
+            elif 'DEFAULT' in authorities and recall_times <= 2:
+                search_path_stack.append([id_index, authorities, recall_times])  # 记录回溯节点
+                authorities = authorities.get('DEFAULT')
+            elif search_path_stack:
+                # 找不到权限信息，回溯
+                id_index, authorities, recall_times = search_path_stack.pop()
+                recall_times += 1
+                continue
+            id_index += 1
+            recall_times = 0
+            if id_index >= max_index or 'PERMISSION' in authorities:
+                permission_level = authorities.get('PERMISSION', None)
+                break
         return permission_level
 
     @classmethod
