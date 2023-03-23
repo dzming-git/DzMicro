@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='DBot_SDK',
-    version='1.4',
+    name='dzmicro',
+    version='1.5.0',
     packages=find_packages(),
     author='dzming',
     author_email='dzming_work@163.com',
@@ -17,7 +17,7 @@ setup(
     ],
     license='MIT',
     keywords='DBot, python',
-    url='https://github.com/dzming-git/DBot_SDK',
+    url='https://github.com/dzming-git/DzMicro',
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',

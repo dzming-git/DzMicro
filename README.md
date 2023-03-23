@@ -1,22 +1,18 @@
-# DBot_SDK
+# DzMicro
 
-DBot微服务的软件开发工具包（SDK）。
+自主开发的微服务引擎。
+初步阶段，多多交流。
 
-## 使用该SDK开发的微程序
+## 使用该引擎开发的微程序
 
-- [DBot_platform](https://github.com/dzming-git/DBot_platform)
-
-- [DBot_monitor](https://github.com/dzming-git/DBot_monitor)
 
 ## 安装使用
 
 ### 安装
 
-1. 安装DBot微服务的平台程序 [DBot_platform](https://github.com/dzming-git/DBot_platform) 。
+1. 下载代码到本地的`DzMicro`目录。
 
-3. 下载代码到本地的`DBot_SDK`目录。
-
-4. 安装 [DBot_SDK](https://github.com/dzming-git/DBot_SDK)，运行以下命令：
+2. 安装 [DzMicro](https://github.com/dzming-git/DzMicro)，运行以下命令：
 
    ``` python
    python setup.py install
@@ -24,7 +20,7 @@ DBot微服务的软件开发工具包（SDK）。
 
 ### 使用
 
-参考 [例程](https://github.com/dzming-git/DBot_SDK/tree/main/example)
+参考 例程 待完善
 
 ## 授权许可
 

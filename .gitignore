@@ -1,6 +1,6 @@
 __pycache__/
 .vscode/
 build/
-DBot_SDK.egg-info/
+dzmicro.egg-info/
 dist/
-example/DBot_SDK
+example/dzmicro
