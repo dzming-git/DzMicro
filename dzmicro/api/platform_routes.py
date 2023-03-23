@@ -11,8 +11,8 @@ def platform_route_registration(app):
         data = request.get_json()
         message = data.get('message')
         source_id = data.get('source_id')
-        from dzmicro.utils import send_message_to_source
-        send_message_to_source(message, source_id)
+        from dzmicro.utils import MessageSender
+        MessageSender.send_message_to_source(message, source_id)
         return jsonify({'message': 'OK'}), 200
 
     # 定义心跳路径

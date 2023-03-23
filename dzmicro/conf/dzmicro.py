@@ -1,6 +1,6 @@
-class DzMicro:
-    
+from typing import List, Callable
 
+class DzMicro:
     def __init__(self) -> None:
         from dzmicro.app import server_thread
         self._server_thread = server_thread
@@ -37,6 +37,10 @@ class DzMicro:
     def set_keyword(self, keyword):
         from dzmicro.app import FuncDict
         FuncDict.set_keyword(keyword)
+    
+    def set_send_message_to_source(self, func: Callable[[str, List, bool], None]):
+        from dzmicro.utils.network import MessageSender
+        MessageSender.set_send_message_to_source(func)
 
     def start_server(self, safe_start: bool = True) -> bool:
         self._server_thread.set_safe_start(safe_start)
