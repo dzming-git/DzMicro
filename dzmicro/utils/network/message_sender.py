@@ -12,9 +12,11 @@ def send_message_to_platform(message, source_id, platform=None):
     response = requests.post(url, json={'message': message, 'source_id': source_id})
     return response.json()
 
-# message broker专用
-def send_message_to_source(message: str, source_id):
+#TODO 这里还没独立出去
+def send_message_to_source(message: str, source_id, warn=False):
     gid, qid = source_id
+    if warn and gid:
+        message = f'[CQ:at,qq={qid}]' + message
     urlencoded_message = urlencoding_message(message)
     if gid is None:
         requests.get(f'http://127.0.0.1:5700/send_private_msg?user_id={qid}&message={urlencoded_message}')
