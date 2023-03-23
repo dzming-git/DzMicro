@@ -5,6 +5,7 @@
 
 ## 使用该引擎开发的微程序
 
+- [DBot](https://github.com/dzming-git/DBot)
 
 ## 安装使用
 
