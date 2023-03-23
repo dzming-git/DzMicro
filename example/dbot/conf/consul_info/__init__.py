@@ -1,1 +1,0 @@
-from .consul_info import ConsulInfo
