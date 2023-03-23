@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='DBot_SDK',
-    version='1.4',
+    name='dbot',
+    version='1.5',
     packages=find_packages(),
     author='dzming',
     author_email='dzming_work@163.com',

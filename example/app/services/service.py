@@ -1,6 +1,6 @@
 import time
 import socket
-from DBot_SDK import send_message, Authority, request_listen
+from dbot import send_message, Authority, request_listen
 
 def help(task):
     source_id = task.get('source_id', None)
