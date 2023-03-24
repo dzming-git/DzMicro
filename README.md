@@ -11,9 +11,11 @@
 
 ### 安装
 
-1. 下载代码到本地的`DzMicro`目录。
+1. 从 [Consul官网](https://www.consul.io/downloads.html) 下载适合你的操作系统的安装包，并安装。
 
-2. 安装 [DzMicro](https://github.com/dzming-git/DzMicro)，运行以下命令：
+2. 下载代码到本地的`DzMicro`目录。
+
+3. 安装 [DzMicro](https://github.com/dzming-git/DzMicro)，运行以下命令：
 
    ``` python
    python setup.py install
@@ -21,7 +23,7 @@
 
 ### 使用
 
-参考 例程 待完善
+参考 [DBot](https://github.com/dzming-git/DBot)
 
 ## 授权许可
 
