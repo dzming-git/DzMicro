@@ -1,10 +1,10 @@
 import requests
 import json
 import socket
-from typing import Dict
+from typing import Dict, Union
 from dzmicro.utils.judge_same_listener import judge_same_listener
 
-def upload_service_commands():
+def upload_service_commands() -> None:
     from dzmicro.conf import RouteInfo
     from dzmicro.app import FuncDict
     service_name = RouteInfo.get_service_name()
@@ -13,7 +13,7 @@ def upload_service_commands():
     from dzmicro.utils import consul_client
     consul_client.update_key_value({f'{service_name}/config': {'keyword': keyword,'commands': commands}})
 
-def request_listen(request_command, command, source_id, should_listen):
+def request_listen(request_command, command, source_id, should_listen)-> None:
     from dzmicro.conf import RouteInfo
     from dzmicro.app import FuncDict
     from dzmicro.utils.network import consul_client
@@ -48,7 +48,7 @@ def request_listen(request_command, command, source_id, should_listen):
     consul_client.update_key_value({f'{service_name}/listeners': consul_listeners})
 
 
-def publish_task(message: Dict):
+def publish_task(message: Dict[str, any]) -> Union[bool, None]:
     print(f'publish_task\n{message}\n')
     service_address = message.get('service_address', (None, None))
     service_ip, service_port = service_address

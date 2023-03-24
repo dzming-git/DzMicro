@@ -6,7 +6,7 @@ class ConsulInfo:
     _watch_dog = None
 
     @classmethod
-    def load_config(cls, config_path, reload_flag=False):
+    def load_config(cls, config_path: str, reload_flag: str = False) -> None:
         with open(config_path, 'r', encoding='utf-8') as f:
             config = yaml.safe_load(f)
 
@@ -23,5 +23,5 @@ class ConsulInfo:
                 cls._watch_dog.start()
 
     @classmethod
-    def reload_config(cls):
+    def reload_config(cls) -> None:
         cls.load_config(config_path=cls._config_path, reload_flag=True)

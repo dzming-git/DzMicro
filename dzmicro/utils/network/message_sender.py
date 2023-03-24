@@ -1,12 +1,12 @@
 # message_sender.py
 import requests
-from typing import List, Callable
+from typing import List, Dict, Callable, Union
 
 class MessageSender:
     send_message_to_source: Callable[[str, List, bool], None] = None
 
     @classmethod
-    def send_message_to_platform(cls, message, source_id, platform=None):
+    def send_message_to_platform(cls, message: str, source_id: List[any], platform: Union[List[List[str]], None] = None) -> Dict[str, any]:
         from dzmicro.utils.network import consul_client
         platform_name = consul_client.download_key_value('config/platform', '""')
         if platform is None:
@@ -17,5 +17,5 @@ class MessageSender:
         return response.json()
     
     @classmethod
-    def set_send_message_to_source(cls, func: Callable[[str, List, bool], None]):
+    def set_send_message_to_source(cls, func: Callable[[str, List, bool], None]) -> None:
         cls.send_message_to_source = func

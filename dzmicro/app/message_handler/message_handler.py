@@ -8,16 +8,16 @@ from dzmicro.conf import RouteInfo
 from queue import Queue
 import time
 import socket
-from typing import List
+from typing import List, Dict, Union, Tuple
 
 class MessageHandlerThread(threading.Thread):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name='MessageHandlerThread')
         self.stop = False
         self.message_queue = Queue()
         super().start()
     
-    def run(self):
+    def run(self) -> None:
         while not self.stop:
             message = self.message_queue.get(block=True)
             service_name = message.get('service_name')
@@ -35,7 +35,7 @@ class MessageHandlerThread(threading.Thread):
                 except:
                     connect_error_handler(source_id)
     
-    def add_message_queue(self, service_info, send_json):
+    def add_message_queue(self, service_info: Dict[str, List[str]], send_json: Dict[str, any]) -> None:
         if service_info:
             platform_ip = socket.gethostbyname(socket.gethostname())
             platform_port = RouteInfo.get_service_port()
@@ -46,8 +46,8 @@ class MessageHandlerThread(threading.Thread):
             }
             self.message_queue.put(message_json)
 
-    def message_handler(self, message: str, source_id: List):
-        def message_split(message):
+    def message_handler(self, message: str, source_id: List[any]) -> None:
+        def message_split(message: str) -> Tuple[Union[str, None], Union[str, None], Union[List[str], None]]:
             pattern = r'(#\w+)\s*(.*)'
             match = re.match(pattern, message.strip())
             if match:
@@ -111,7 +111,7 @@ class MessageHandlerThread(threading.Thread):
                 if judge_same_listener(listener, listener1):
                     if command == listener.get('request_command'):  # 接收到的指令与申请监听的指令是同一个指令
                         service_info, send_json = arg0
-                        service_info['service_address'] = (listener_ip, listener_port)  # 转发给处理监听的服务
+                        service_info['service_address'] = [listener_ip, listener_port]  # 转发给处理监听的服务
                         arg0 = (service_info, send_json)
             else:
                 service_info = {'service_name': listener_service_name, 'service_address': service_address}

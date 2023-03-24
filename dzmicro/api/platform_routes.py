@@ -1,8 +1,8 @@
 # platform_routes.py
-from flask import request, jsonify
+from flask import request, jsonify, Flask
 from dzmicro.utils.network import heartbeat_manager
 
-def platform_route_registration(app):
+def platform_route_registration(app: Flask) -> None:
     @app.route(f'/api/v1/service_message', methods=['POST'])
     def register_service_message():
         '''

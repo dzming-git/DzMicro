@@ -6,20 +6,21 @@ import threading
 import json
 import re
 import random
-from typing import Dict
+from flask import Flask
+from typing import Dict, List, Union
 from dzmicro.utils import compare_dicts
 
 class WatchKVThread(threading.Thread):
-    def __init__(self, c):
+    def __init__(self, c: consul) -> None:
         super().__init__(name=f'WatchKV')
         self._c = c
         self._stop = False
         self._kv = {}
     
-    def stop(self):
+    def stop(self) -> None:
         self._stop = True
 
-    def on_config_changed(self, config_dict: Dict, change):
+    def on_config_changed(self, config_dict: Dict[str, any], change: str) -> None:
         from dzmicro.app import BotCommands
         if change == 'add':
             pattern = r"DBot_(\w+)/config"
@@ -34,7 +35,7 @@ class WatchKVThread(threading.Thread):
                         for command in commands:
                             BotCommands.add_commands(keyword, command)
 
-    def on_listener_changed(self, listener_dict: Dict, change):
+    def on_listener_changed(self, listener_dict: Dict[str, any], change: str) -> None:
         from dzmicro.utils import listener_manager
         pattern = r"DBot_(\w+)/listeners"
         for key, value in listener_dict.items():
@@ -52,24 +53,24 @@ class WatchKVThread(threading.Thread):
                     listener_manager.update_listeners(value, is_rm=True)
 
 
-    def on_add_kv(self, added_dict: Dict):
+    def on_add_kv(self, added_dict: Dict[str, any]) -> None:
         print(f'添加\n{added_dict}\n')
         self.on_config_changed(added_dict, 'add')
         self.on_listener_changed(added_dict, 'add')
 
-    def on_deleted_kv(self, deleted_dict):
+    def on_deleted_kv(self, deleted_dict: Dict[str, any]) -> None:
         #TODO 配置文件删除
         print(f'删除\n{deleted_dict}\n')
         self.on_config_changed(deleted_dict, 'delete')
         self.on_listener_changed(deleted_dict, 'delete')
 
-    def on_modified_kv(self, modified_dict):
+    def on_modified_kv(self, modified_dict: Dict[str, any]) -> None:
         #TODO 配置文件修改
         print(f'修改\n{modified_dict}\n')
         self.on_config_changed(modified_dict, 'modify')
         self.on_listener_changed(modified_dict, 'modify')
 
-    def run(self):
+    def run(self) -> None:
         while not self._stop:
             new_kv = {}
             while True:
@@ -104,17 +105,17 @@ class WatchKVThread(threading.Thread):
             time.sleep(1)
 
 class ConsulClient:
-    def __init__(self, host='localhost', port=8500, token=''):
+    def __init__(self, host: str = 'localhost', port: int = 8500, token: str = '') -> None:
         self.consul = consul.Consul(host=host, port=port)
         self.set_token(token)
     
-    def set_token(self, token):
+    def set_token(self, token: str) -> None:
         if token:
             self.consul.token = token
             self._watch_kv_thread = WatchKVThread(self.consul)
             self._watch_kv_thread.start()
     
-    def register_service(self, service_name, service_port, service_tags=None):
+    def register_service(self, service_name: str, service_port: Union[str, int], service_tags: List[str] = []) -> str:
         """
         注册服务到Consul
         """
@@ -124,7 +125,7 @@ class ConsulClient:
         self.consul.agent.service.register(name=service_name, service_id=service_id, address=service_address, port=service_port, tags=service_tags, check=service_check)
         return service_id
 
-    def update_key_value(self, dict_to_upload: dict):
+    def update_key_value(self, dict_to_upload: Dict[str, any]) -> None:
         """
         将字典上传Consul
         """
@@ -138,7 +139,7 @@ class ConsulClient:
                     print(f'上传字典{dict}失败，正在重试')
                     time.sleep(1)
 
-    def download_key_value(self, key: str, default=None, keys=False):
+    def download_key_value(self, key: str, default: any = None, keys: bool = False) -> any:
         """
         从Consul下载指定的Key Value
         """
@@ -153,13 +154,13 @@ class ConsulClient:
         else:
             return default
 
-    def deregister_service(self, service_id):
+    def deregister_service(self, service_id: str) -> None:
         """
         从Consul中注销服务
         """
         self.consul.agent.service.deregister(service_id)
 
-    def discover_services(self, service_name):
+    def discover_services(self, service_name: str) -> List[List[str]]:
         """
         发现服务，返回所有设备信息
         """
@@ -167,11 +168,11 @@ class ConsulClient:
         # 过滤掉不健康的服务
         try:
             services = self.consul.health.service(service_name, passing=True)[1]
-            return [(service.get('Service', {}).get('Address'), service.get('Service', {}).get('Port')) for service in services]
+            return [[service.get('Service', {}).get('Address', ''), service.get('Service', {}).get('Port', '')] for service in services]
         except:
-            return []
+            return [[]]
 
-    def discover_service(self, service_name):
+    def discover_service(self, service_name: str) -> Union[List[List[str]], None]:
         """
         发现服务，随机返回其中一个设备信息
         """
@@ -180,7 +181,7 @@ class ConsulClient:
             return None
         return random.choice(services)
 
-    def check_port_available(self, sname: str, sip: str, sport: int):
+    def check_port_available(self, sname: str, sip: str, sport: Union[int, str]) -> bool:
         if sip == '0.0.0.0' or sip == '127.0.0.1':
             sip = socket.gethostbyname(socket.gethostname())
         # 获取所有已注册的服务
@@ -206,14 +207,14 @@ class ConsulClient:
                     return False
         return True
 
-    def register_consul(self, app, name, port, tags):
+    def register_consul(self, app: Flask, name: str, port: Union[str, int], tags: List[str]) -> None:
         '''
         服务开启前,注册consul
         '''
         id = self.register_service(name, port, tags)
         app.config.update({'id': id})
 
-    def deregister_service(self, app):
+    def deregister_service(self, app: Flask) -> None:
         '''
         服务结束后,注销consul
         '''

@@ -2,6 +2,7 @@
 import yaml
 import copy
 from dzmicro.utils import WatchDogThread, compare_dicts
+from typing import List
 
 class RouteInfo:
     _config_path = ''
@@ -10,7 +11,7 @@ class RouteInfo:
     _service_conf = {}
 
     @classmethod
-    def load_config(cls, config_path, reload_flag=False):
+    def load_config(cls, config_path: str, reload_flag: bool = False) -> None:
         with open(config_path, 'r', encoding='utf-8') as f:
             cls._config = yaml.safe_load(f)
             cls._service_conf = cls._config.get('service', {})
@@ -20,7 +21,7 @@ class RouteInfo:
                 cls._watch_dog.start()
 
     @classmethod
-    def reload_config(cls):
+    def reload_config(cls) -> None:
         config_old = copy.deepcopy(cls._config)
         cls.load_config(config_path=cls._config_path, reload_flag=True)
         config_new = copy.deepcopy(cls._config)
@@ -31,18 +32,18 @@ class RouteInfo:
 
     # 服务程序配置方法
     @classmethod
-    def get_service_name(cls):
-        return cls._service_conf.get('name')
+    def get_service_name(cls) -> str:
+        return cls._service_conf.get('name', '')
 
     @classmethod
-    def get_service_ip(cls):
-        return cls._service_conf.get('ip')
+    def get_service_ip(cls) -> str:
+        return cls._service_conf.get('ip', '')
 
     @classmethod
-    def get_service_port(cls):
-        return cls._service_conf.get('port')
+    def get_service_port(cls) -> str:
+        return cls._service_conf.get('port', '')
 
     @classmethod
-    def get_service_tags(cls):
+    def get_service_tags(cls) -> List[str]:
         return cls._service_conf.get('tags', [])
     

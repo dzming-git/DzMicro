@@ -1,5 +1,6 @@
 import yaml
 from dzmicro.utils import WatchDogThread
+from typing import List, Union
 
 class Authority:
     _config_path = ''
@@ -9,7 +10,7 @@ class Authority:
     _authorities = {}
 
     @classmethod
-    def load_config(cls, config_path, reload_flag=False):
+    def load_config(cls, config_path: str, reload_flag: bool = False) -> None:
         with open(config_path, 'r', encoding='utf-8') as f:
             config = yaml.safe_load(f)
             cls._authorities = config.get('AUTHORITIES', {})
@@ -21,12 +22,12 @@ class Authority:
                 cls._watch_dog.start()
 
     @classmethod
-    def reload_config(cls):
+    def reload_config(cls) -> None:
         cls.load_config(config_path=cls._config_path, reload_flag=True)
 
 
     @classmethod
-    def get_permission_level(cls, source_id):
+    def get_permission_level(cls, source_id: List[any]) -> int:
         source_id = [str(x_id) for x_id in source_id]
         # 回溯方法调取权限
         search_path_stack = []
@@ -63,14 +64,14 @@ class Authority:
         return permission_level
 
     @classmethod
-    def get_permission_by_level(cls, level):
+    def get_permission_by_level(cls, level: int) -> Union[str, None]:
         for permissionm, l in cls._permission_level.items():
             if l == level:
                 return permissionm
         return None
 
     @classmethod
-    def check_command_permission(cls, command, source_id):
+    def check_command_permission(cls, command: str, source_id: List[any]) -> Union[bool, None]:
         '''
         特殊权限：
         -3 只准内部调用，不对用户开放
@@ -99,5 +100,3 @@ class Authority:
             return False
         # 一般权限
         return permission_level >= permission_level_need
-
-

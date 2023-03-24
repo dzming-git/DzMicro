@@ -3,25 +3,25 @@ import requests
 import threading
 
 class HeartbeatManager(threading.Thread):
-    def __init__(self, interval=5):
+    def __init__(self, interval: float = 5) -> None:
         super().__init__(name='HeartbeatManagerThread')
         self._interval = interval
         self._services = {}
         self._timer = time.time()
         self._is_platform = None
     
-    def set_identity(self, is_platform=False):
+    def set_identity(self, is_platform: bool = False) -> None:
         self._is_platform = is_platform
 
-    def register(self, service_name):
+    def register(self, service_name: str) -> None:
         if service_name not in self._services:
             print(f'服务程序 {service_name} 已上线')
         self._services[service_name] = time.time()
     
-    def check_online(self, service_name):
+    def check_online(self, service_name: str) -> bool:
         return service_name in self._services
     
-    def heartbeat(self):
+    def heartbeat(self) -> None:
         # 定义心跳间隔时间，发送心跳的时间间隔比检测时间间隔少一点
         heartbeat_interval = self._interval * 0.9
         from dzmicro.conf.route_info import RouteInfo
@@ -47,7 +47,7 @@ class HeartbeatManager(threading.Thread):
 
             time.sleep(heartbeat_interval)
 
-    def check(self):
+    def check(self) -> None:
         now = time.time()
         try:
             for service_name, last_time in self._services.items():
@@ -59,7 +59,7 @@ class HeartbeatManager(threading.Thread):
             #TODO 测试时，for service_name, last_time in self._services.items()报错：RuntimeError: dictionary changed size during iteration
             pass
 
-    def run(self):
+    def run(self) -> None:
         while self._is_platform is None:
             time.sleep(1)
         if self._is_platform:

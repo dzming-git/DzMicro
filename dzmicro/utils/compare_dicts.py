@@ -1,5 +1,7 @@
 # compare_dict.py
-def compare_dicts(dict1, dict2):
+from typing import Dict, Tuple
+
+def compare_dicts(dict1: Dict, dict2: Dict) -> Tuple[Dict, Dict, Dict]:
     """
     比较两个字典的不同之处，返回三个字典（增加的内容，删除的内容，修改的内容）
     """
@@ -38,5 +40,4 @@ def compare_dicts(dict1, dict2):
                 deleted[key] = dict1[key]
             else:
                 modified[key] = {'old': dict1[key], 'new': dict2[key]}
-
     return added, deleted, modified

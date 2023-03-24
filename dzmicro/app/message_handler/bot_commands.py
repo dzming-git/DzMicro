@@ -1,5 +1,6 @@
 # bot_commands.py
 import threading
+from typing import List
 
 class BotCommands:
     '''
@@ -20,14 +21,14 @@ class BotCommands:
     _lock = threading.Lock()
 
     @classmethod
-    def add_keyword(cls, keyword, service_name):
+    def add_keyword(cls, keyword: str, service_name: str) -> None:
         with cls._lock:
             cls._bot_commands[keyword] = {}
             cls._bot_commands[keyword]['service_name'] = service_name
             cls._bot_commands[keyword]['command'] = []
 
     @classmethod
-    def add_commands(cls, keyword, command):
+    def add_commands(cls, keyword: str, command: str) -> None:
         with cls._lock:
             if keyword in cls._bot_commands:
                 cls._bot_commands[keyword]['command'].append(command)
@@ -36,17 +37,17 @@ class BotCommands:
                 print('请先添加keyword')
     
     @classmethod
-    def get_keywords(cls):
+    def get_keywords(cls) -> List[str]:
         with cls._lock:
             return list(cls._bot_commands.keys())
     
     @classmethod
-    def get_commands(cls, keyword):
+    def get_commands(cls, keyword: str) -> List[str]:
         with cls._lock:
             return cls._bot_commands.get(keyword, {}).get('command', [])
     
     @classmethod
-    def get_service_name(cls, keyword):
+    def get_service_name(cls, keyword: str) -> str:
         with cls._lock:
             return cls._bot_commands.get(keyword, {}).get('service_name', '')
     

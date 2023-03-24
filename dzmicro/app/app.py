@@ -8,7 +8,7 @@ from dzmicro.conf import DzMicro
 from dzmicro.utils.network import heartbeat_manager, upload_service_commands
 
 class ServerThread(threading.Thread):
-    def init(self, is_platform=False):
+    def init(self, is_platform: bool = False) -> bool:
         self.safe_start = False
         self._server = None
         from dzmicro.conf import RouteInfo
@@ -41,31 +41,31 @@ class ServerThread(threading.Thread):
         self._server = make_server(host=ip, port=port, app=self._app)
         return True
 
-    def set_safe_start(self, flag):
+    def set_safe_start(self, flag: bool) -> None:
         '''
         设置安全开始，则会检查配置中的ip与port是否已经被占用
         但会有较大的启动时间开销
         '''
         self.safe_start = flag
 
-    def start(self, is_platform=False):
+    def start(self, is_platform: bool = False) -> bool:
         if self.init(is_platform):
             super().start()
             return True
         return False
         
-    def destory_app(self):
+    def destory_app(self) -> None:
         consul_client.deregister_service(self._app)
 
-    def run(self):
+    def run(self) -> None:
         print(f'{self.server_name}已运行')
         self._server.serve_forever()
         print(f'{self.server_name}已结束')
     
-    def stop(self):
+    def stop(self) -> None:
         self._server.shutdown()
     
-    def restart(self):
+    def restart(self) -> bool:
         print(f'{self.server_name}正在重启')
         if self._server:
             self.stop()
