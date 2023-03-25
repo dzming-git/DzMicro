@@ -1,6 +1,6 @@
-from flask import request
+from flask import request, Flask
 
-def route_registration(app):
+def route_registration(app: Flask) -> None:
     from dzmicro.conf import RouteInfo
     from dzmicro.conf import Authority
     from dzmicro.utils import task_thread
