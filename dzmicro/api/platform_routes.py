@@ -1,6 +1,5 @@
 # platform_routes.py
 from flask import request, jsonify, Flask
-from dzmicro.utils.network import heartbeat_manager
 
 def platform_route_registration(app: Flask) -> None:
     @app.route(f'/api/v1/service_message', methods=['POST'])
@@ -12,13 +11,16 @@ def platform_route_registration(app: Flask) -> None:
         message = data.get('message')
         source_id = data.get('source_id')
         from dzmicro.utils import MessageSender
-        MessageSender.send_message_to_source(message, source_id)
+        message_sender = MessageSender()
+        message_sender.send_message_to_source(message, source_id)
         return jsonify({'message': 'OK'}), 200
 
     # 定义心跳路径
     @app.route('/api/v1/heartbeat/<name>')
     def heartbeat(name: str):
         # 处理心跳请求，并返回相应
+        from dzmicro.utils.network import HeartbeatManager
+        heartbeat_manager = HeartbeatManager()
         heartbeat_manager.register(name)
         return 'Heartbeat OK for service {}'.format(name)
 

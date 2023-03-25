@@ -1,37 +1,37 @@
 import yaml
 from dzmicro.utils import WatchDogThread
 from typing import List, Union
+from dzmicro.utils.singleton import singleton
 
+@singleton
 class Authority:
-    _config_path = ''
-    _watch_dog = None
-    _global_permission_first = False
-    _permission_level = {}
-    _authorities = {}
+    def __init__(self) -> None:
+        self._config_path = ''
+        self._watch_dog = None
+        self._global_permission_first = False
+        self._permission_level = {}
+        self._authorities = {}
 
-    @classmethod
-    def load_config(cls, config_path: str, reload_flag: bool = False) -> None:
+    def load_config(self, config_path: str, reload_flag: bool = False) -> None:
         with open(config_path, 'r', encoding='utf-8') as f:
             config = yaml.safe_load(f)
-            cls._authorities = config.get('AUTHORITIES', {})
-            cls._permission_level = config.get('PERMISSION_LEVEL', {})
-            cls._global_permission_first = config.get('GLOBAL_PERMISSION_FIRST', False)
+            self._authorities = config.get('AUTHORITIES', {})
+            self._permission_level = config.get('PERMISSION_LEVEL', {})
+            self._global_permission_first = config.get('GLOBAL_PERMISSION_FIRST', False)
             if not reload_flag:
-                cls._config_path = config_path
-                cls._watch_dog = WatchDogThread(config_path, cls.reload_config)
-                cls._watch_dog.start()
+                self._config_path = config_path
+                self._watch_dog = WatchDogThread(config_path, self.reload_config)
+                self._watch_dog.start()
 
-    @classmethod
-    def reload_config(cls) -> None:
-        cls.load_config(config_path=cls._config_path, reload_flag=True)
+    def reload_config(self) -> None:
+        self.load_config(config_path=self._config_path, reload_flag=True)
 
 
-    @classmethod
-    def get_permission_level(cls, source_id: List[any]) -> int:
+    def get_permission_level(self, source_id: List[any]) -> int:
         source_id = [str(x_id) for x_id in source_id]
         # 回溯方法调取权限
         search_path_stack = []
-        authorities = cls._authorities
+        authorities = self._authorities
         id_index = 0
         max_index = len(source_id)
         recall_times = 0
@@ -39,7 +39,7 @@ class Authority:
         while True:
             x_id = source_id[id_index]
             if 'GLOBAL' in authorities and recall_times <= 0:
-                if not cls._global_permission_first and x_id not in authorities:
+                if not self._global_permission_first and x_id not in authorities:
                     # 如果x_id没查询到，并且global优先为设定，则不使用global权限
                     # global优先未设定时，只有参与配置的id可以使用global权限
                     break
@@ -63,25 +63,24 @@ class Authority:
                 break
         return permission_level
 
-    @classmethod
-    def get_permission_by_level(cls, level: int) -> Union[str, None]:
-        for permissionm, l in cls._permission_level.items():
+    def get_permission_by_level(self, level: int) -> Union[str, None]:
+        for permissionm, l in self._permission_level.items():
             if l == level:
                 return permissionm
         return None
 
-    @classmethod
-    def check_command_permission(cls, command: str, source_id: List[any]) -> Union[bool, None]:
+    def check_command_permission(self, command: str, source_id: List[any]) -> Union[bool, None]:
         '''
         特殊权限：
         -3 只准内部调用，不对用户开放
         -2 最高权限，可以调用一切外部调用的指令
         -1 禁止使用一切指令
         '''
-        permission_level = cls.get_permission_level(source_id)
+        permission_level = self.get_permission_level(source_id)
         from dzmicro.app import FuncDict
-        permission_need = FuncDict.get_permission(command)
-        permission_level_need = cls._permission_level.get(permission_need, None)
+        func_dict = FuncDict()
+        permission_need = func_dict.get_permission(command)
+        permission_level_need = self._permission_level.get(permission_need, None)
         # func_dict中权限配置错误
         if permission_level_need is None:
             print('func_dict中权限配置错误')

@@ -1,7 +1,9 @@
 import time
 import requests
 import threading
+from dzmicro.utils.singleton import singleton
 
+@singleton
 class HeartbeatManager(threading.Thread):
     def __init__(self, interval: float = 5) -> None:
         super().__init__(name='HeartbeatManagerThread')
@@ -25,14 +27,15 @@ class HeartbeatManager(threading.Thread):
         # 定义心跳间隔时间，发送心跳的时间间隔比检测时间间隔少一点
         heartbeat_interval = self._interval * 0.9
         from dzmicro.conf.route_info import RouteInfo
-        from dzmicro.utils.network import consul_client
-        
+        from dzmicro.utils.network import ConsulClient
+        route_info = RouteInfo()
+        consul_client = ConsulClient()
         while True:
             platform_name = consul_client.download_key_value('config/platform', '""')
             platforms = consul_client.discover_services(platform_name)
             for platform in platforms:
                 ip, port = platform
-                service_name = RouteInfo.get_service_name()
+                service_name = route_info.get_service_name()
                 if ip and port and service_name:
                     url = f'http://{ip}:{port}/api/v1/heartbeat/{service_name}'
                 try:
@@ -70,5 +73,3 @@ class HeartbeatManager(threading.Thread):
                 time.sleep(1)
         else:
             self.heartbeat()
-
-heartbeat_manager = HeartbeatManager()

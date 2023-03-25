@@ -1,4 +1,4 @@
-from .app import server_thread
+from .app import ServerThread
 from .services import FuncDict
 from .message_handler import BotCommands
 from .message_handler import command_error_handler

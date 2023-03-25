@@ -2,8 +2,9 @@
 import threading
 from queue import Queue
 from typing import List, Dict
-from dzmicro.app import FuncDict
+from dzmicro.utils.singleton import singleton
 
+@singleton
 class TaskThread(threading.Thread):
     def __init__(self) -> None:
         super().__init__(name='TaskThread')
@@ -19,8 +20,10 @@ class TaskThread(threading.Thread):
         })
     
     def exe_task(self, task: Dict[str, any]) -> None:
+        from dzmicro.app import FuncDict
+        func_dict = FuncDict()
         command = task['command']
-        func = FuncDict.get_func(command)
+        func = func_dict.get_func(command)
         func(task)
 
     def run(self) -> None:
@@ -33,5 +36,3 @@ class TaskThread(threading.Thread):
     
     def stop(self) -> None:
         self._stop = False
-
-task_thread = TaskThread()

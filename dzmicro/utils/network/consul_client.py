@@ -9,11 +9,14 @@ import random
 from flask import Flask
 from typing import Dict, List, Union
 from dzmicro.utils import compare_dicts
+from dzmicro.utils.singleton import singleton
+
 
 class WatchKVThread(threading.Thread):
-    def __init__(self, c: consul) -> None:
+    def __init__(self, c: consul, prefix: str) -> None:
         super().__init__(name=f'WatchKV')
         self._c = c
+        self._prefix = prefix
         self._stop = False
         self._kv = {}
     
@@ -22,22 +25,24 @@ class WatchKVThread(threading.Thread):
 
     def on_config_changed(self, config_dict: Dict[str, any], change: str) -> None:
         from dzmicro.app import BotCommands
+        bot_commands = BotCommands()
         if change == 'add':
-            pattern = r"DBot_(\w+)/config"
+            pattern = fr"{self._prefix}(\w+)/config"
             for key, value in config_dict.items():
                 match = re.search(pattern, key)
                 if match:
                     service_name = f'DBot_{match.group(1)}'
                     keyword = value.get('keyword')
-                    BotCommands.add_keyword(keyword, service_name)
+                    bot_commands.add_keyword(keyword, service_name)
                     commands = value.get('commands')
                     if service_name and commands:
                         for command in commands:
-                            BotCommands.add_commands(keyword, command)
+                            bot_commands.add_commands(keyword, command)
 
     def on_listener_changed(self, listener_dict: Dict[str, any], change: str) -> None:
-        from dzmicro.utils import listener_manager
-        pattern = r"DBot_(\w+)/listeners"
+        from dzmicro.utils import ListenerManager
+        listener_manager = ListenerManager()
+        pattern = fr"{self._prefix}(\w+)/listeners"
         for key, value in listener_dict.items():
             match = re.search(pattern, key)
             if match:
@@ -71,13 +76,14 @@ class WatchKVThread(threading.Thread):
         self.on_listener_changed(modified_dict, 'modify')
 
     def run(self) -> None:
+        consul_client = ConsulClient()
         while not self._stop:
             new_kv = {}
             while True:
                 try:
                     # 获取指定文件夹下的所有key
                     #TODO 这个前缀也可以在kv中配置
-                    keys = consul_client.download_key_value('DBot_', [], True)
+                    keys = consul_client.download_key_value(self._prefix, [], True)
                     break
                 except:
                     print('下载字典失败，正在重试')
@@ -104,16 +110,23 @@ class WatchKVThread(threading.Thread):
             self._kv = new_kv
             time.sleep(1)
 
+@singleton
 class ConsulClient:
-    def __init__(self, host: str = 'localhost', port: int = 8500, token: str = '') -> None:
+    def __init__(self, host: str = 'localhost', port: int = 8500, prefix: str = '', token: str = '') -> None:
         self.consul = consul.Consul(host=host, port=port)
+        self.set_prefix(prefix)
         self.set_token(token)
+    
+    def set_prefix(self, prefix: str = '') -> None:
+        self._prefix = prefix
     
     def set_token(self, token: str) -> None:
         if token:
             self.consul.token = token
-            self._watch_kv_thread = WatchKVThread(self.consul)
-            self._watch_kv_thread.start()
+
+    def start_watch_kv(self) -> None:
+        self._watch_kv_thread = WatchKVThread(self.consul, self._prefix)
+        self._watch_kv_thread.start()
     
     def register_service(self, service_name: str, service_port: Union[str, int], service_tags: List[str] = []) -> str:
         """
@@ -220,6 +233,3 @@ class ConsulClient:
         '''
         id = app.config['id']
         self.deregister_service(self, id)
-
-
-consul_client = ConsulClient()

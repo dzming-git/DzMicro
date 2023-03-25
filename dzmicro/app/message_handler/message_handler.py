@@ -2,14 +2,16 @@
 import re
 import threading
 from dzmicro.app import BotCommands, keyword_error_handler, command_error_handler, permission_denied, service_offline, connect_error_handler
-from dzmicro.utils.network import publish_task, heartbeat_manager, consul_client
-from dzmicro.utils import listener_manager, judge_same_listener
+from dzmicro.utils.network import publish_task, HeartbeatManager, ConsulClient
+from dzmicro.utils import ListenerManager, judge_same_listener
 from dzmicro.conf import RouteInfo
 from queue import Queue
 import time
 import socket
 from typing import List, Dict, Union, Tuple
+from dzmicro.utils.singleton import singleton
 
+@singleton
 class MessageHandlerThread(threading.Thread):
     def __init__(self) -> None:
         super().__init__(name='MessageHandlerThread')
@@ -23,6 +25,7 @@ class MessageHandlerThread(threading.Thread):
             service_name = message.get('service_name')
             send_json = message.get('send_json', {})
             source_id = send_json.get('source_id')
+            heartbeat_manager = HeartbeatManager()
             if heartbeat_manager.check_online(service_name) is False:
                 service_offline(source_id)
             else:
@@ -38,7 +41,8 @@ class MessageHandlerThread(threading.Thread):
     def add_message_queue(self, service_info: Dict[str, List[str]], send_json: Dict[str, any]) -> None:
         if service_info:
             platform_ip = socket.gethostbyname(socket.gethostname())
-            platform_port = RouteInfo.get_service_port()
+            route_info = RouteInfo()
+            platform_port = route_info.get_service_port()
             message_json = {
                 **service_info,
                 'platform_address': (platform_ip, platform_port) if platform_ip and platform_port else None,
@@ -61,9 +65,11 @@ class MessageHandlerThread(threading.Thread):
                 return keyword, command, args
             else:
                 return None, None, None
-        
+            
+        listener_manager = ListenerManager()
+        bot_commands = BotCommands()
         listeners = listener_manager.get_listeners()
-        keywords = list(BotCommands.get_keywords())
+        keywords = list(bot_commands.get_keywords())
         keyword, command, args = message_split(message)
 
         include_keyword = False
@@ -79,11 +85,12 @@ class MessageHandlerThread(threading.Thread):
                 keyword_error_handler(source_id)
             else:
                 correct_keyword = True
-                commands = BotCommands.get_commands(keyword)
+                commands = bot_commands.get_commands(keyword)
                 if command not in commands:
                     command_error_handler(source_id)
-                service_name = BotCommands.get_service_name(keyword)
+                service_name = bot_commands.get_service_name(keyword)
                 is_user_call = True
+                consul_client = ConsulClient()
                 service_address = consul_client.discover_service(service_name)
                 if service_address is not None:
                     service_info = {'service_name': service_name, 'service_address': service_address}
@@ -122,5 +129,3 @@ class MessageHandlerThread(threading.Thread):
             self.add_message_queue(*arg0)
         for arg in args_listener:
             self.add_message_queue(*arg)
-
-message_handler_thread = MessageHandlerThread()

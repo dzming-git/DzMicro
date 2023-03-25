@@ -2,8 +2,6 @@ from typing import List, Callable, Dict
 
 class DzMicro:
     def __init__(self) -> None:
-        from dzmicro.app import server_thread
-        self._server_thread = server_thread
         self._is_platform = False
 
     def is_platform(self, confirm: bool = None) -> bool:
@@ -14,34 +12,40 @@ class DzMicro:
         '''
         if confirm:
             self._is_platform = True
-            return True
-        else:
-            return self._is_platform
+        return self._is_platform
     
-    def set_Authority_config(self, config_path: str) -> None:
+    def set_authority_config(self, config_path: str) -> None:
         from dzmicro.conf import Authority
-        Authority.load_config(config_path)
+        authority = Authority()
+        authority.load_config(config_path)
     
-    def set_RouteInfo_config(self, config_path: str) -> None:
+    def set_route_info_config(self, config_path: str) -> None:
         from dzmicro.conf import RouteInfo
-        RouteInfo.load_config(config_path)
+        route_info = RouteInfo()
+        route_info.load_config(config_path)
     
-    def set_ConsulInfo_config(self, config_path: str) -> None:
+    def set_consul_info_config(self, config_path: str) -> None:
         from dzmicro.conf import ConsulInfo
-        ConsulInfo.load_config(config_path)
+        consul_info = ConsulInfo()
+        consul_info.load_config(config_path)
     
-    def set_func_dict(self, func_dict: Dict[str, Dict[str, any]]) -> None:
+    def set_func_dict(self, func_dict_input: Dict[str, Dict[str, any]]) -> None:
         from dzmicro.app import FuncDict
-        FuncDict.set_func_dict(func_dict)
+        func_dict = FuncDict()
+        func_dict.set_func_dict(func_dict_input)
     
     def set_keyword(self, keyword: str) -> None:
         from dzmicro.app import FuncDict
-        FuncDict.set_keyword(keyword)
+        func_dict = FuncDict()
+        func_dict.set_keyword(keyword)
     
     def set_send_message_to_source(self, func: Callable[[str, List, bool], None]) -> None:
         from dzmicro.utils.network import MessageSender
-        MessageSender.set_send_message_to_source(func)
+        message_sender = MessageSender()
+        message_sender.set_send_message_to_source(func)
 
     def start_server(self, safe_start: bool = True) -> bool:
-        self._server_thread.set_safe_start(safe_start)
-        return self._server_thread.start(self._is_platform)
+        from dzmicro.app import ServerThread
+        server_thread = ServerThread()
+        server_thread.set_safe_start(safe_start)
+        return server_thread.start(self._is_platform)

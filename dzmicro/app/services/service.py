@@ -1,29 +1,26 @@
 from typing import Dict, List, Optional, Callable
+from dzmicro.utils.singleton import singleton
 
+@singleton
 class FuncDict:
-    _func_dict = {}
-    _keyword = ''
+    def __init__(self) -> None:
+        self._func_dict = {}
+        self._keyword = ''
 
-    @classmethod
-    def set_keyword(cls, keyword: str) -> None:
-        cls._keyword = keyword
+    def set_keyword(self, keyword: str) -> None:
+        self._keyword = keyword
 
-    @classmethod
-    def set_func_dict(cls, func_dict: Dict[str, Dict[str, any]]) -> None:
-        cls._func_dict = func_dict
+    def set_func_dict(self, func_dict: Dict[str, Dict[str, any]]) -> None:
+        self._func_dict = func_dict
     
-    @classmethod
-    def get_keyword(cls) -> str:
-        return cls._keyword
+    def get_keyword(self) -> str:
+        return self._keyword
 
-    @classmethod
-    def get_commands(cls) -> List[str]:
-        return list(cls._func_dict.keys())
+    def get_commands(self) -> List[str]:
+        return list(self._func_dict.keys())
     
-    @classmethod
-    def get_func(cls, command: str) -> Optional[Callable[[Dict[str, any]], None]]:
-        return cls._func_dict.get(command).get('func')
+    def get_func(self, command: str) -> Optional[Callable[[Dict[str, any]], None]]:
+        return self._func_dict.get(command).get('func')
     
-    @classmethod
-    def get_permission(cls, command: str) -> str:
-        return cls._func_dict.get(command).get('permission')
+    def get_permission(self, command: str) -> str:
+        return self._func_dict.get(command).get('permission')
