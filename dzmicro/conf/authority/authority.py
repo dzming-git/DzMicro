@@ -64,9 +64,9 @@ class Authority:
         return permission_level
 
     def get_permission_by_level(self, level: int) -> Union[str, None]:
-        for permissionm, l in self._permission_level.items():
+        for permission, l in self._permission_level.items():
             if l == level:
-                return permissionm
+                return permission
         return None
 
     def check_command_permission(self, command: str, source_id: List[any]) -> Union[bool, None]:
