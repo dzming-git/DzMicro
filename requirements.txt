@@ -4,3 +4,4 @@ PyYAML
 python-consul
 ruamel.yaml
 watchdog
+pika

@@ -29,6 +29,11 @@ class DzMicro:
         consul_info = ConsulInfo()
         consul_info.load_config(config_path)
     
+    def set_mq_info_config(self, config_path: str) -> None:
+        from dzmicro.conf import MQInfo
+        mq_info = MQInfo()
+        mq_info.load_config(config_path)
+    
     def set_func_dict(self, func_dict_input: Dict[str, Dict[str, any]]) -> None:
         from dzmicro.app import FuncDict
         func_dict = FuncDict()
@@ -49,3 +54,16 @@ class DzMicro:
         server_thread = ServerThread()
         server_thread.set_safe_start(safe_start)
         return server_thread.start(self._is_platform)
+
+    def start_consume(self) -> bool:
+        if self._is_platform:
+            from dzmicro.api.platform.platform_consumer import start_consume
+        else:
+            from dzmicro.api.server.server_consumer import start_consume
+        self.mq_consumer = start_consume()
+        return True
+
+    def start(self) ->bool:
+        return \
+            self.start_server() and \
+            self.start_consume()

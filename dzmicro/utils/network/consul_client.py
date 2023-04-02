@@ -31,7 +31,7 @@ class WatchKVThread(threading.Thread):
             for key, value in config_dict.items():
                 match = re.search(pattern, key)
                 if match:
-                    service_name = f'{match.group(1)}'
+                    service_name = f'DBot_{match.group(1)}'
                     keyword = value.get('keyword')
                     bot_commands.add_keyword(keyword, service_name)
                     commands = value.get('commands')
@@ -47,7 +47,7 @@ class WatchKVThread(threading.Thread):
             match = re.search(pattern, key)
             if match:
                 if change == 'add':
-                    service_name = f'{match.group(1)}'
+                    service_name = f'DBot_{match.group(1)}'
                     #TODO 需不需要比较service_name和value中的service_name是否一致？
                     listener_manager.update_listeners(value)
                 elif change == 'modify':

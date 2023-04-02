@@ -2,7 +2,6 @@
 from flask import Flask
 import threading
 from werkzeug.serving import make_server
-from dzmicro.api import route_registration, platform_route_registration
 from dzmicro.utils import ConsulClient
 from dzmicro.utils.network import HeartbeatManager, upload_service_commands
 from dzmicro.utils.singleton import singleton
@@ -35,11 +34,12 @@ class ServerThread(threading.Thread):
         upload_service_commands()
         
         if is_platform:
-            platform_route_registration(self._app)
+            from dzmicro.api.platform.platform_routes import route_registration
             # 在consul的kv中配置本服务为平台服务
             self._consul_client.update_key_value({f'config/platform': self.server_name})
         else:
-            route_registration(self._app)
+            from dzmicro.api.server.server_routes import route_registration
+        route_registration(self._app)
 
         self._consul_client.register_consul(self._app, self.server_name, port, tags)
         self._server = make_server(host=ip, port=port, app=self._app)

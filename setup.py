@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='dzmicro',
-    version='1.5.0',
+    version='2.0.0',
     packages=find_packages(),
     author='dzming',
     author_email='dzming_work@163.com',
@@ -13,7 +13,8 @@ setup(
         'PyYAML',
         'python-consul',
         'ruamel.yaml',
-        'watchdog'
+        'watchdog',
+        'pika'
     ],
     license='MIT',
     keywords='DBot, python',

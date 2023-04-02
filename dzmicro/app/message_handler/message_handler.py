@@ -1,12 +1,11 @@
 # message_handler.py
 import re
 import threading
-from dzmicro.app import BotCommands, keyword_error_handler, command_error_handler, permission_denied, service_offline, connect_error_handler
-from dzmicro.utils.network import publish_task, HeartbeatManager, ConsulClient
+from dzmicro.app import BotCommands, keyword_error_handler, command_error_handler, connect_error_handler
+from dzmicro.utils.network import ConsulClient
 from dzmicro.utils import ListenerManager, judge_same_listener
 from dzmicro.conf import RouteInfo
 from queue import Queue
-import time
 import socket
 from typing import List, Dict, Union, Tuple
 from dzmicro.utils.singleton import singleton
@@ -20,23 +19,13 @@ class MessageHandlerThread(threading.Thread):
         super().start()
     
     def run(self) -> None:
+        from dzmicro.utils.network.mq import create_mq
+        mq = None
         while not self.stop:
             message = self.message_queue.get(block=True)
-            service_name = message.get('service_name')
-            send_json = message.get('send_json', {})
-            source_id = send_json.get('source_id')
-            heartbeat_manager = HeartbeatManager()
-            if heartbeat_manager.check_online(service_name) is False:
-                service_offline(source_id)
-            else:
-                try:
-                    authorized = publish_task(message)
-                    # None不处理，False告知权限不足
-                    if authorized is False:
-                        permission_denied(source_id)
-                    time.sleep(0.1)
-                except:
-                    connect_error_handler(source_id)
+            if mq is None:
+                mq = create_mq()
+            mq.send_task(task=message.get('send_json', {}), queue_name='receive_command', reply=)
     
     def add_message_queue(self, service_info: Dict[str, List[str]], send_json: Dict[str, any]) -> None:
         if service_info:

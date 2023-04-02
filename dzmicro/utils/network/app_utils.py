@@ -1,6 +1,5 @@
-import requests
 import socket
-from typing import Dict, Union
+from typing import Dict
 from dzmicro.utils.judge_same_listener import judge_same_listener
 
 def upload_service_commands() -> None:
@@ -51,14 +50,3 @@ def request_listen(request_command, command, source_id, should_listen)-> None:
             'port': port,
             'source_id': source_id})
     consul_client.update_key_value({f'{service_name}/listeners': consul_listeners})
-
-
-def publish_task(message: Dict[str, any]) -> Union[bool, None]:
-    print(f'publish_task\n{message}\n')
-    service_address = message.get('service_address', (None, None))
-    service_ip, service_port = service_address
-    send_json = message.get('send_json', {})
-    url = f'http://{service_ip}:{service_port}/api/v1/receive_command'
-    response = requests.post(url, json=send_json).json()
-    authorized = response.get('permission', None)
-    return authorized
