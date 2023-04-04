@@ -2,13 +2,13 @@
 from flask import Flask
 import threading
 from werkzeug.serving import make_server
-from dzmicro.utils import ConsulClient
 from dzmicro.utils.network import HeartbeatManager, upload_service_commands
 from dzmicro.utils.singleton import singleton
 
 @singleton
 class ServerThread(threading.Thread):
-    def init(self, is_platform: bool = False) -> bool:
+    def init(self, is_platform: bool = False) -> bool: 
+        from dzmicro.utils import ConsulClient
         self.safe_start = False
         self._server = None
         self._consul_client = ConsulClient()

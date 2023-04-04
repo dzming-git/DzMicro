@@ -1,8 +1,9 @@
 from dzmicro.utils.network import MQThread
 from typing import Dict, Tuple
 import threading
+from pika.spec import BasicProperties
 
-def task_handler(task: Dict[str, any]) -> Tuple[bool, Dict[str, any]]:
+def task_handler(task: Dict[str, any], props: BasicProperties) -> Tuple[bool, Dict[str, any], BasicProperties]:
     result_dict = {}
     command = task.get('command', '')
     source_id = task.get('source_id', [])
@@ -23,12 +24,21 @@ def task_handler(task: Dict[str, any]) -> Tuple[bool, Dict[str, any]]:
         single_task_thread.start()
     result_dict['permission'] = permission
     result_dict['source_id'] = source_id
-    return True, result_dict
+    props_send = BasicProperties()
+    props_send.correlation_id = props.correlation_id
+    return True, result_dict, props_send
+
+def service_message_reply(task: Dict[str, any], props: BasicProperties) -> Tuple[bool, Dict[str, any], BasicProperties]:
+    from dzmicro.utils.network.mq import MQReplyThread
+    mq_reply = MQReplyThread()
+    mq_reply.ack_reply(props.correlation_id, task)
+    return True, {}, None
 
 def start_consume() -> MQThread:
     from dzmicro.utils.network.mq import create_mq
     mq_thread = create_mq()
     mq_thread.declare_queue('receive_command')
     mq_thread.set_consumer(queue_name='receive_command', task_handler=task_handler, reply=True)
+    mq_thread.set_consumer(queue_name='service_message_reply', task_handler=service_message_reply, reply=False)
     mq_thread.start()
     return mq_thread

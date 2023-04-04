@@ -11,19 +11,14 @@ class MessageSender:
         
 
     def send_message_to_platform(self, message: str, source_id: List[any], platform: Union[List[List[str]], None] = None) -> Dict[str, any]:
-        from dzmicro.utils.network import create_mq
+        from dzmicro.utils.network.mq import create_mq, MQReplyThread
         if self._mq is None:
             self._mq = create_mq()
-        self._mq.send_task({'message': message, 'source_id': source_id}, 'service_message')
-        # from dzmicro.utils.network import ConsulClient
-        # consul_client = ConsulClient()
-        # platform_name = consul_client.download_key_value('config/platform', '""')
-        # if platform is None:
-        #     platform = consul_client.discover_service(platform_name)
-        # ip, port = platform
-        # url = f'http://{ip}:{port}/api/v1/service_message'
-        # response = requests.post(url, json={'message': message, 'source_id': source_id})
-        # return response.json()
+        correlation_id = self._mq.send_task({'message': message, 'source_id': source_id}, 'service_message')
+        mq_reply = MQReplyThread()
+        reply = mq_reply.wait_reply(correlation_id, {'message': message, 'source_id': source_id}, 'service_message', True)
+        if reply is None:
+            print('连接平台超时')
     
     def set_send_message_to_source(self, func: Callable[[str, List, bool], None]) -> None:
         self.send_message_to_source = func

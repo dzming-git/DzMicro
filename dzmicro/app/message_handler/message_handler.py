@@ -1,7 +1,7 @@
 # message_handler.py
 import re
 import threading
-from dzmicro.app import BotCommands, keyword_error_handler, command_error_handler, connect_error_handler
+from dzmicro.app import BotCommands, keyword_error_handler, command_error_handler, connect_error_handler, permission_denied
 from dzmicro.utils.network import ConsulClient
 from dzmicro.utils import ListenerManager, judge_same_listener
 from dzmicro.conf import RouteInfo
@@ -17,15 +17,25 @@ class MessageHandlerThread(threading.Thread):
         self.stop = False
         self.message_queue = Queue()
         super().start()
-    
+
     def run(self) -> None:
-        from dzmicro.utils.network.mq import create_mq
+        from dzmicro.utils.network.mq import create_mq, MQReplyThread
         mq = None
         while not self.stop:
             message = self.message_queue.get(block=True)
+            source_id = message.get('send_json', {}).get('source_id')
             if mq is None:
                 mq = create_mq()
-            mq.send_task(task=message.get('send_json', {}), queue_name='receive_command', reply=)
+            correlation_id = mq.send_task(task=message.get('send_json', {}), queue_name='receive_command')
+            mq_reply = MQReplyThread()
+            reply = mq_reply.wait_reply(correlation_id, message.get('send_json', {}), 'receive_command', True)
+            if reply is None:
+                connect_error_handler(source_id)
+            else:
+                permission = reply.get('permission', None)
+                # None不处理，False告知权限不足
+                if permission is False:
+                    permission_denied(source_id)
     
     def add_message_queue(self, service_info: Dict[str, List[str]], send_json: Dict[str, any]) -> None:
         if service_info:
