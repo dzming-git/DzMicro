@@ -1,16 +1,20 @@
 import yaml
 from dzmicro.utils import WatchDogThread
 from typing import List, Union
-from dzmicro.utils.singleton import singleton
 
-@singleton
 class Authority:
-    def __init__(self) -> None:
+    def __init__(self, uuid: str, is_platform: bool = False) -> None:
+        self.uuid = uuid
+        self.is_platform = is_platform
         self._config_path = ''
         self._watch_dog = None
         self._global_permission_first = False
         self._permission_level = {}
         self._authorities = {}
+    
+    def set_server_unique_info(self) -> None:
+        from dzmicro.utils import singleton_server_manager
+        self.server_unique_info = singleton_server_manager.get_server_unique_info(self.uuid)
 
     def load_config(self, config_path: str, reload_flag: bool = False) -> None:
         with open(config_path, 'r', encoding='utf-8') as f:
@@ -77,8 +81,7 @@ class Authority:
         -1 禁止使用一切指令
         '''
         permission_level = self.get_permission_level(source_id)
-        from dzmicro.app import FuncDict
-        func_dict = FuncDict()
+        func_dict = self.server_unique_info .func_dict
         permission_need = func_dict.get_permission(command)
         permission_level_need = self._permission_level.get(permission_need, None)
         # func_dict中权限配置错误

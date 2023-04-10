@@ -2,25 +2,23 @@ import socket
 from typing import Dict
 from dzmicro.utils.judge_same_listener import judge_same_listener
 
-def upload_service_commands() -> None:
-    from dzmicro.conf import RouteInfo
-    from dzmicro.app import FuncDict
-    from dzmicro.utils import ConsulClient
-    route_info = RouteInfo()
-    func_dict = FuncDict()
-    consul_client = ConsulClient()
+def upload_service_commands(uuid: str) -> None:
+    from dzmicro.utils import singleton_server_manager
+    server_unique_info = singleton_server_manager.get_server_unique_info(uuid)
+    route_info = server_unique_info.route_info
+    func_dict = server_unique_info.func_dict
+    consul_client = server_unique_info.consul_client
     service_name = route_info.get_service_name()
     keyword = func_dict.get_keyword()
     commands = func_dict.get_commands()
     consul_client.update_key_value({f'{service_name}/config': {'keyword': keyword,'commands': commands}})
 
-def request_listen(request_command, command, source_id, should_listen)-> None:
-    from dzmicro.conf import RouteInfo
-    from dzmicro.app import FuncDict
-    from dzmicro.utils.network import ConsulClient
-    route_info = RouteInfo()
-    func_dict = FuncDict()
-    consul_client = ConsulClient()
+def request_listen(uuid: str, request_command, command, source_id, should_listen)-> None:
+    from dzmicro.utils import singleton_server_manager
+    server_unique_info = singleton_server_manager.get_server_unique_info(uuid)
+    route_info = server_unique_info.route_info
+    func_dict = server_unique_info.func_dict
+    consul_client = server_unique_info.consul_client
     service_name = route_info.get_service_name()
     # ip需要获取IPV4，配置中是0.0.0.0，不能从配置文件中读取
     hostname = socket.gethostname()

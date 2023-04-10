@@ -1,11 +1,9 @@
 # bot_commands.py
 import threading
 from typing import List
-from dzmicro.utils.singleton import singleton
 
-@singleton
 class BotCommands:
-    def __init__(self) -> None:
+    def __init__(self, uuid: str, is_platform: bool = False) -> None:
 
         '''
         用于储存/查找 关键词、指令与服务名的映射关系
@@ -23,6 +21,8 @@ class BotCommands:
         '''
         self._bot_commands = {}
         self._lock = threading.Lock()
+        self.uuid = uuid
+        self.is_platform = is_platform
 
     def add_keyword(self, keyword: str, service_name: str) -> None:
         with self._lock:

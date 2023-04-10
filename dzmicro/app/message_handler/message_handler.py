@@ -8,29 +8,31 @@ from dzmicro.conf import RouteInfo
 from queue import Queue
 import socket
 from typing import List, Dict, Union, Tuple
-from dzmicro.utils.singleton import singleton
 
-@singleton
 class MessageHandlerThread(threading.Thread):
-    def __init__(self) -> None:
+    def __init__(self, uuid: str, is_platform: bool = False) -> None:    
         super().__init__(name='MessageHandlerThread')
         self.stop = False
         self.message_queue = Queue()
-        super().start()
+        self.producer_mq = None
+        self.mq_reply = None
+        self.uuid = uuid
+        self.is_platform = is_platform
+
+    def set_server_unique_info(self) -> None:
+        from dzmicro.utils import singleton_server_manager
+        self.server_unique_info = singleton_server_manager.get_server_unique_info(self.uuid)
+        self.producer_mq = self.server_unique_info.producer_mq
+        self.mq_reply = self.server_unique_info.mq_replay_thread
 
     def run(self) -> None:
-        from dzmicro.utils.network.mq import create_mq, MQReplyThread
-        mq = None
         while not self.stop:
             message = self.message_queue.get(block=True)
             source_id = message.get('send_json', {}).get('source_id')
-            if mq is None:
-                mq = create_mq()
-            correlation_id = mq.send_task(task=message.get('send_json', {}), queue_name='receive_command')
-            mq_reply = MQReplyThread()
-            reply = mq_reply.wait_reply(correlation_id, message.get('send_json', {}), 'receive_command', True)
+            correlation_id = self.producer_mq.send_task(task=message.get('send_json', {}), queue_name='receive_command')
+            reply = self.mq_reply.wait_reply(correlation_id, message.get('send_json', {}), 'receive_command', True)
             if reply is None:
-                connect_error_handler(source_id)
+                connect_error_handler(self.uuid, source_id)
             else:
                 permission = reply.get('permission', None)
                 # None不处理，False告知权限不足
@@ -40,7 +42,7 @@ class MessageHandlerThread(threading.Thread):
     def add_message_queue(self, service_info: Dict[str, List[str]], send_json: Dict[str, any]) -> None:
         if service_info:
             platform_ip = socket.gethostbyname(socket.gethostname())
-            route_info = RouteInfo()
+            route_info = self.server_unique_info.route_info
             platform_port = route_info.get_service_port()
             message_json = {
                 **service_info,
@@ -64,9 +66,10 @@ class MessageHandlerThread(threading.Thread):
                 return keyword, command, args
             else:
                 return None, None, None
-            
-        listener_manager = ListenerManager()
-        bot_commands = BotCommands()
+        from dzmicro.utils import singleton_server_manager
+        server_shared_info = singleton_server_manager.get_server_shared_info()
+        listener_manager = server_shared_info.listener_manager
+        bot_commands = self.server_unique_info.bot_commands
         listeners = listener_manager.get_listeners()
         keywords = list(bot_commands.get_keywords())
         keyword, command, args = message_split(message)
@@ -81,22 +84,22 @@ class MessageHandlerThread(threading.Thread):
         if keyword:
             include_keyword = True
             if keyword not in keywords:
-                keyword_error_handler(source_id)
+                keyword_error_handler(self.uuid, source_id)
             else:
                 correct_keyword = True
                 commands = bot_commands.get_commands(keyword)
                 if command not in commands:
-                    command_error_handler(source_id)
+                    command_error_handler(self.uuid, source_id)
                 service_name = bot_commands.get_service_name(keyword)
                 is_user_call = True
-                consul_client = ConsulClient()
+                consul_client = self.server_unique_info.consul_client
                 service_address = consul_client.discover_service(service_name)
                 if service_address is not None:
                     service_info = {'service_name': service_name, 'service_address': service_address}
                     send_json = {'command': command, 'args': args, 'source_id': source_id, 'is_user_call': is_user_call}
                     arg0 = (service_info, send_json)
                 else:
-                    connect_error_handler(source_id)
+                    connect_error_handler(self.uuid, source_id)
 
         # 监听消息转发
         for listener in listeners:

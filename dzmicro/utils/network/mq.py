@@ -7,18 +7,17 @@ import copy
 from pika.adapters import blocking_connection
 from pika.spec import BasicProperties
 from typing import Callable, Dict, Tuple
-from dzmicro.utils.singleton import singleton
 from dzmicro.app.message_handler.error_handler import connect_error_handler
 
-@singleton
 class MQReplyThread(threading.Thread):
-    def __init__(self, timeout=1) -> None:
+    def __init__(self, uuid: str, is_platform: bool = False, timeout: int = 1) -> None:
         super().__init__(name='MQReplyThread')
         self.reply_dict = {}
         self.timeout = timeout
         self._lock = threading.Lock()
         self.started = False
-        self.start()
+        self.uuid = uuid
+        self.is_platform = is_platform
     
     def wait_reply(self, correlation_id: str, task: Dict[str, any], queue_name: str, wait: bool = False):
         with self._lock:
@@ -68,20 +67,26 @@ class MQReplyThread(threading.Thread):
 
 
 class MQThread(threading.Thread):
-    def __init__(self) -> None:
+    def __init__(self, uuid: str, is_platform: bool = False) -> None:
         super().__init__(name='MQThread')
         self._credentials = None
         self._channel = None
-    
-    def set_credentials(self, username: str, password: str) -> None:
-        self._credentials = pika.PlainCredentials(username,  password)
+        self.uuid = uuid
+        self.is_platform = is_platform
+
+    def set_server_unique_info(self) -> None:
+        from dzmicro.utils import singleton_server_manager
+        self.server_unique_info = singleton_server_manager.get_server_unique_info(self.uuid)
+        mq_user, mq_pwd = self.server_unique_info.mq_info.get_uesrinfo()
+        self._credentials = pika.PlainCredentials(mq_user, mq_pwd)
     
     def create_channel(self, host: str = 'localhost') -> None:
+        assert self._credentials is not None
         if self._credentials is None:
             print('请先set_credentials')
             return
         connection = pika.BlockingConnection(pika.ConnectionParameters(
-            host, credentials=self._credentials, virtual_host='/'))
+            host, credentials=self._credentials, virtual_host='/', heartbeat=0))
         self._channel = connection.channel()
         self._channel.basic_qos(prefetch_count=1)
     
@@ -98,12 +103,12 @@ class MQThread(threading.Thread):
     
     def set_consumer(self, 
                      queue_name: str, 
-                     task_handler: Callable[[Dict[str, any], BasicProperties], Tuple[bool, Dict[str, any], BasicProperties]], 
+                     task_handler: Callable[[str, Dict[str, any], BasicProperties], Tuple[bool, Dict[str, any], BasicProperties]], 
                      attempt_max = -1, 
                      reply: bool = False):
         def callback(ch: blocking_connection.BlockingChannel, method, props: BasicProperties, body):
             task = json.loads(body)
-            ok, result_dict, props_send = task_handler(task, props)
+            ok, result_dict, props_send = task_handler(self.uuid, task, props)
             if ok:
                 if reply:
                     ch.basic_publish(exchange='',
@@ -159,12 +164,3 @@ class MQThread(threading.Thread):
     
     def run(self) -> None:
         self._channel.start_consuming()
-
-def create_mq() -> MQThread:
-    from dzmicro.conf import MQInfo
-    mq_info = MQInfo()
-    mq_thread = MQThread()
-    username, password = mq_info.get_uesrinfo()
-    mq_thread.set_credentials(username, password)
-    mq_thread.create_channel()
-    return mq_thread

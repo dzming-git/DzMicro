@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='dzmicro',
-    version='2.0.1',
+    version='2.0.2',
     packages=find_packages(),
     author='dzming',
     author_email='dzm_work@163.com',

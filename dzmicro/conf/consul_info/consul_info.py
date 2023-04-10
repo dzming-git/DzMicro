@@ -1,28 +1,24 @@
 import yaml
-from dzmicro.utils import WatchDogThread, ConsulClient
-from dzmicro.utils.singleton import singleton
+from dzmicro.utils import WatchDogThread
+from typing import List, Dict
 
-@singleton
 class ConsulInfo:
-    def __init__(self) -> None:
+    def __init__(self, uuid: str, is_platform: bool = False) -> None:
         self._config_path = ''
         self._watch_dog = None
+        self.uuid = uuid
+        self.is_platform = is_platform
+        self.token = ''
+        self.prefix = ''
+        self.kvs = {}
 
     def load_config(self, config_path: str, reload_flag: str = False) -> None:
         with open(config_path, 'r', encoding='utf-8') as f:
             config = yaml.safe_load(f)
 
-            #TODO 放这里感觉有些不合适
-            consul_client = ConsulClient()
-            token = config.get('TOKEN', '')
-            consul_client.set_token(token)
-            prefix = config.get('PREFIX', '')
-            consul_client.set_prefix(prefix)
-            consul_client.start_watch_kv()
-
-            kvs = config.get('KV', {})
-            for kv in kvs:
-                consul_client.update_key_value(kv)
+            self.token = config.get('TOKEN', '')
+            self.prefix = config.get('PREFIX', '')
+            self.kvs = config.get('KV', [])
 
             if not reload_flag:
                 self._config_path = config_path
@@ -31,3 +27,12 @@ class ConsulInfo:
 
     def reload_config(self) -> None:
         self.load_config(config_path=self._config_path, reload_flag=True)
+    
+    def get_token(self) -> str:
+        return self.token
+
+    def get_prefix(self) -> str:
+        return self.prefix
+    
+    def get_kvs(self) -> List[Dict[str, str]]:
+        return self.kvs

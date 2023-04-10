@@ -1,14 +1,14 @@
 import yaml
 from dzmicro.utils import WatchDogThread
-from dzmicro.utils.singleton import singleton
 from typing import Tuple
 
-@singleton
 class MQInfo:
-    def __init__(self) -> None:
+    def __init__(self, uuid: str, is_platform: bool = False) -> None:
         self._config = {}
         self._config_path = ''
         self._watch_dog = None
+        self.uuid = uuid
+        self.is_platform = is_platform
 
     def load_config(self, config_path: str, reload_flag: str = False) -> None:
         with open(config_path, 'r', encoding='utf-8') as f:

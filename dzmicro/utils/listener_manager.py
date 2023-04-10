@@ -1,8 +1,6 @@
 from dzmicro.utils.judge_same_listener import judge_same_listener
 from typing import List, Dict
-from dzmicro.utils.singleton import singleton
 
-@singleton
 class ListenerManager:
     '''
     _listens = [

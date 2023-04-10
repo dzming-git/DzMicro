@@ -9,23 +9,25 @@ import random
 from flask import Flask
 from typing import Dict, List, Union
 from dzmicro.utils import compare_dicts
-from dzmicro.utils.singleton import singleton
-
 
 class WatchKVThread(threading.Thread):
-    def __init__(self, c: consul, prefix: str) -> None:
+    def __init__(self, uuid: str, is_platform: bool) -> None:
         super().__init__(name=f'WatchKV')
-        self._c = c
-        self._prefix = prefix
+        self.uuid = uuid
+        self.is_platform = is_platform
         self._stop = False
         self._kv = {}
+
+    def set_server_unique_info(self) -> None:
+        from dzmicro.utils import singleton_server_manager
+        self.server_unique_info = singleton_server_manager.get_server_unique_info(self.uuid)
+        self._prefix = self.server_unique_info.consul_info.get_prefix()
     
     def stop(self) -> None:
         self._stop = True
 
     def on_config_changed(self, config_dict: Dict[str, any], change: str) -> None:
-        from dzmicro.app import BotCommands
-        bot_commands = BotCommands()
+        bot_commands = self.server_unique_info.bot_commands
         if change == 'add':
             pattern = fr"{self._prefix}(\w+)/config"
             for key, value in config_dict.items():
@@ -40,8 +42,9 @@ class WatchKVThread(threading.Thread):
                             bot_commands.add_commands(keyword, command)
 
     def on_listener_changed(self, listener_dict: Dict[str, any], change: str) -> None:
-        from dzmicro.utils import ListenerManager
-        listener_manager = ListenerManager()
+        from dzmicro.utils import singleton_server_manager
+        server_shared_info = singleton_server_manager.get_server_shared_info()
+        listener_manager = server_shared_info.listener_manager
         pattern = fr"{self._prefix}(\w+)/listeners"
         for key, value in listener_dict.items():
             match = re.search(pattern, key)
@@ -76,7 +79,7 @@ class WatchKVThread(threading.Thread):
         self.on_listener_changed(modified_dict, 'modify')
 
     def run(self) -> None:
-        consul_client = ConsulClient()
+        consul_client = self.server_unique_info.consul_client
         while not self._stop:
             new_kv = {}
             while True:
@@ -110,23 +113,26 @@ class WatchKVThread(threading.Thread):
             self._kv = new_kv
             time.sleep(1)
 
-@singleton
 class ConsulClient:
-    def __init__(self, host: str = 'localhost', port: int = 8500, prefix: str = '', token: str = '') -> None:
+    def __init__(self, uuid: str, is_platform: bool = False, host: str = 'localhost', port: int = 8500) -> None:
+        #TODO assert consul_info需要先加载
+        self.uuid = uuid
+        self.is_platform = is_platform
         self.consul = consul.Consul(host=host, port=port)
-        self.set_prefix(prefix)
-        self.set_token(token)
-    
-    def set_prefix(self, prefix: str = '') -> None:
-        self._prefix = prefix
-    
-    def set_token(self, token: str) -> None:
-        if token:
-            self.consul.token = token
 
-    def start_watch_kv(self) -> None:
-        self._watch_kv_thread = WatchKVThread(self.consul, self._prefix)
-        self._watch_kv_thread.start()
+    def set_server_unique_info(self) -> None:
+        from dzmicro.utils import singleton_server_manager
+        self.server_unique_info = singleton_server_manager.get_server_unique_info(self.uuid)
+        self.prefix = self.server_unique_info.consul_info.get_prefix()
+        self.consul.token = self.server_unique_info.consul_info.get_token()
+    
+    # def set_prefix(self, prefix: str = '') -> None:
+    #     self._prefix = prefix
+    
+    # def set_token(self, token: str) -> None:
+    #     if token:
+    #         self.consul.token = token
+
     
     def register_service(self, service_name: str, service_port: Union[str, int], service_tags: List[str] = []) -> str:
         """
